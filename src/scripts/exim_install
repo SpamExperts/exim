@@ -217,8 +217,9 @@ while [ $# -gt 0 ]; do
   # The exim binary is handled specially
 
   if [ $name = exim${EXE} ]; then
-    version=exim-`./exim -bV -C /dev/null | \
-      awk '/Exim version/ { OFS=""; print $3,"-",substr($4,2,length($4)-1) }'`${EXE}
+    version=exim
+#    version=exim-`./exim -bV -C /dev/null | \
+#      awk '/Exim version/ { OFS=""; print $3,"-",substr($4,2,length($4)-1) }'`${EXE}
 
     if [ "${version}" = "exim-${EXE}" ]; then
       echo $com ""
@@ -368,10 +369,8 @@ done
 
 
 
-# If there is no configuration file, install the default, modifying it to refer
-# to the configured system aliases file. If there is no setting for
-# SYSTEM_ALIASES_FILE, use the traditional /etc/aliases. If the file does not
-# exist, install a default (dummy) for that too.
+# Install default configuration file
+# This is a local Debian modification.
 
 # However, if CONFIGURE_FILE specifies a list of files, skip this code.
 
@@ -394,7 +393,7 @@ elif [ ! -f ${CONFIGURE_FILE} ]; then
   ${real} ${MKDIR} -p `${DIRNAME} ${CONFIGURE_FILE}`
 
   echo sed -e '\\'
-  echo "  \"/SYSTEM_ALIASES_FILE/ s'SYSTEM_ALIASES_FILE'${ACTUAL_SYSTEM_ALIASES_FILE}'\"" '\\'
+  echo "  \"/SYSTEM_ALIASES_FILE/ s'SYSTEM_ALIASES_FILE'/etc/aliases'\"" '\\'
   echo "  ../src/configure.default > \${CONFIGURE_FILE}"
 
   # I can't find a way of writing this using the ${real} feature because
@@ -403,7 +402,7 @@ elif [ ! -f ${CONFIGURE_FILE} ]; then
 
   if [ "$real" = "" ] ; then
     sed -e \
-      "/SYSTEM_ALIASES_FILE/ s'SYSTEM_ALIASES_FILE'${ACTUAL_SYSTEM_ALIASES_FILE}'" \
+      "/SYSTEM_ALIASES_FILE/ s'SYSTEM_ALIASES_FILE'/etc/aliases'" \
       ../src/configure.default > ${CONFIGURE_FILE}
   else
     true
