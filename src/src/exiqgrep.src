@@ -21,7 +21,7 @@ use strict;
 use Getopt::Std;
 
 # Have this variable point to your exim binary.
-my $exim = 'BIN_DIRECTORY/exim';
+my $exim = 'BIN_DIRECTORY/exim4';
 my $eargs = '-bpu';
 my %id;
 my %opt;
