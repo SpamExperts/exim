@@ -3940,6 +3940,9 @@ if (smtp_input && sender_host_address != NULL && !sender_host_notsocket &&
       smtp_reply = US"";    /* No attempt to send a response */
       smtp_yield = FALSE;   /* Nothing more on this connection */
 
+      /* Run the NOTQUIT ACL, if present. */
+      smtp_notquit_exit(US"connection-lost-after-dot", NULL, NULL);
+
       /* Re-use the log line workspace */
 
       sptr = 0;

@@ -1282,6 +1282,16 @@ else if (result == DEFER || result == PANIC)
     /* Write the main log and reset the store */
 
     log_write(use_log_selector, logflags, "== %s", s);
+#ifdef EXPERIMENTAL_EVENT
+   /* Skip this event for errors of the type "retry time not reached" */
+   if (addr->basic_errno >= ERRNO_RETRY_BASE)
+   {
+     if (deliver_freeze)
+       msg_event_raise(US"msg:defer:delivery:frozen", addr);
+     else
+       msg_event_raise(US"msg:defer:delivery", addr);
+   }
+#endif
     store_reset(reset_point);
     }
   }
@@ -6855,6 +6865,11 @@ while (addr_failed != NULL)
   DEBUG(D_deliver)
     debug_printf("processing failed address %s\n", addr_failed->address);
 
+#ifdef EXPERIMENTAL_EVENT
+  for (addr = addr_failed; addr != NULL; addr = addr->next)
+    msg_event_raise(US"msg:fail:delivery:expired", addr);
+#endif
+
   /* There are only two ways an address in a bounce message can get here:
 
   (1) When delivery was initially deferred, but has now timed out (in the call
@@ -7307,6 +7322,9 @@ wording. */
         {
         for (addr = handled_addr; addr != NULL; addr = addr->next)
           {
+#ifdef EXPERIMENTAL_EVENT
+          msg_event_raise(US"msg:fail:delivery:bounced", addr);
+#endif
           address_done(addr, logtod);
           child_done(addr, logtod);
           }

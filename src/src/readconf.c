@@ -144,6 +144,8 @@ static optionlist optionlist_config[] = {
 #endif
   { "acl_not_smtp_start",       opt_stringptr,   &acl_not_smtp_start },
   { "acl_smtp_auth",            opt_stringptr,   &acl_smtp_auth },
+  { "acl_smtp_auth_accept",     opt_stringptr,   &acl_smtp_auth_accept },
+  { "acl_smtp_auth_fail",       opt_stringptr,   &acl_smtp_auth_fail },
   { "acl_smtp_connect",         opt_stringptr,   &acl_smtp_connect },
   { "acl_smtp_data",            opt_stringptr,   &acl_smtp_data },
 #ifndef DISABLE_PRDR
@@ -474,7 +476,8 @@ static optionlist optionlist_config[] = {
   { "uucp_from_pattern",        opt_stringptr,   &uucp_from_pattern },
   { "uucp_from_sender",         opt_stringptr,   &uucp_from_sender },
   { "warn_message_file",        opt_stringptr,   &warn_message_file },
-  { "write_rejectlog",          opt_bool,        &write_rejectlog }
+  { "write_rejectlog",          opt_bool,        &write_rejectlog },
+  { "xclient_allow_hosts",      opt_stringptr,   &xclient_allow_hosts },
 };
 
 static int optionlist_config_size =

@@ -231,6 +231,11 @@ else if ((dbm_file = dbfn_open(US"callout", O_RDWR, &dbblock, FALSE)) == NULL)
 /* If a cache database is available see if we can avoid the need to do an
 actual callout by making use of previously-obtained data. */
 
+if (is_recipient)
+   recipient_verify_cache = TRUE;
+else
+   sender_verify_cache = TRUE;
+
 if (dbm_file != NULL)
   {
   dbdata_callout_cache_address *cache_address_record;
@@ -372,6 +377,11 @@ if (dbm_file != NULL)
   dbfn_close(dbm_file);
   dbm_file = NULL;
   }
+
+if (is_recipient)
+   recipient_verify_cache = FALSE;
+else
+   sender_verify_cache = FALSE;
 
 if (!addr->transport)
   {
@@ -1150,6 +1160,16 @@ can do it there for the non-rcpt-verify case.  For this we keep an addresscount.
         else if (errno == 0 && responsebuffer[0] == '5')
           {
           *failure_ptr = US"recipient";
+          if (is_recipient)
+            {
+                recipient_verify_message = (uschar *)malloc(2*sizeof(responsebuffer) + 2);
+                Ustrcpy(recipient_verify_message, &responsebuffer);
+            }
+          else
+            {
+                sender_verify_message = (uschar *)malloc(2*sizeof(responsebuffer) + 2);
+                Ustrcpy(sender_verify_message, &responsebuffer);
+            }
           new_address_record.result = ccache_reject;
           }
 

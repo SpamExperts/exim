@@ -169,6 +169,8 @@ extern uschar *acl_not_smtp_mime;      /* For MIME parts of ditto */
 extern uschar *acl_not_smtp_start;     /* ACL run at the beginning of a non-SMTP session */
 extern uschar *acl_removed_headers;    /* Headers deleted by an ACL */
 extern uschar *acl_smtp_auth;          /* ACL run for AUTH */
+extern uschar *acl_smtp_auth_accept;   /* ACL run for AUTH Success*/
+extern uschar *acl_smtp_auth_fail;     /* ACL run for AUTH Fail*/
 extern uschar *acl_smtp_connect;       /* ACL run on SMTP connection */
 extern uschar *acl_smtp_data;          /* ACL run after DATA received */
 #ifndef DISABLE_PRDR
@@ -484,6 +486,7 @@ extern uschar *helo_lookup_domains;    /* If these given, lookup host name */
 extern uschar *helo_try_verify_hosts;  /* Soft check HELO argument for these */
 extern BOOL    helo_verified;          /* True if HELO verified */
 extern BOOL    helo_verify_failed;     /* True if attempt failed */
+extern uschar *xclient_allow_hosts;    /* Allow XCLIENT command for specified hosts */
 extern uschar *helo_verify_hosts;      /* Hard check HELO argument for these */
 extern const uschar *hex_digits;             /* Used in several places */
 extern uschar *hold_domains;           /* Hold up deliveries to these */
@@ -707,7 +710,9 @@ extern int     received_headers_max;   /* Max count of Received: headers */
 extern int     received_time;          /* Time the message was received */
 extern uschar *recipient_data;         /* lookup data for recipients */
 extern uschar *recipient_unqualified_hosts; /* Permitted unqualified recipients */
+extern BOOL    recipient_verify_cache; /* If callout cache was found */
 extern uschar *recipient_verify_failure; /* What went wrong */
+extern uschar *recipient_verify_message;
 extern BOOL    recipients_discarded;   /* By an ACL */
 extern int     recipients_list_max;    /* Maximum number fitting in list */
 extern int     recipients_max;         /* Max permitted */
@@ -776,7 +781,9 @@ extern uschar *sender_rate_period;     /* Configured smoothing period */
 extern uschar *sender_rcvhost;         /* Host data for Received: */
 extern BOOL    sender_set_untrusted;   /* Sender set by untrusted caller */
 extern uschar *sender_unqualified_hosts; /* Permitted unqualified senders */
+extern BOOL    sender_verify_cache;    /* If callout cache was found */
 extern uschar *sender_verify_failure;  /* What went wrong */
+extern uschar *sender_verify_message;
 extern address_item *sender_verified_list; /* Saved chain of sender verifies */
 extern address_item *sender_verified_failed; /* The one that caused denial */
 extern uschar *sending_ip_address;     /* Address of outgoing (SMTP) interface */

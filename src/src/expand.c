@@ -629,7 +629,9 @@ static var_entry var_table[] = {
   { "received_protocol",   vtype_stringptr,   &received_protocol },
   { "received_time",       vtype_int,         &received_time },
   { "recipient_data",      vtype_stringptr,   &recipient_data },
+  { "recipient_verify_cache",vtype_bool,      &recipient_verify_cache },
   { "recipient_verify_failure",vtype_stringptr,&recipient_verify_failure },
+  { "recipient_verify_message",vtype_stringptr,&recipient_verify_message },
   { "recipients",          vtype_string_func, &fn_recipients },
   { "recipients_count",    vtype_int,         &recipients_count },
 #ifdef WITH_CONTENT_SCAN
@@ -659,7 +661,9 @@ static var_entry var_table[] = {
   { "sender_rate_limit",   vtype_stringptr,   &sender_rate_limit },
   { "sender_rate_period",  vtype_stringptr,   &sender_rate_period },
   { "sender_rcvhost",      vtype_stringptr,   &sender_rcvhost },
+  { "sender_verify_cache", vtype_bool,        &sender_verify_cache },
   { "sender_verify_failure",vtype_stringptr,  &sender_verify_failure },
+  { "sender_verify_message",vtype_stringptr,  &sender_verify_message },
   { "sending_ip_address",  vtype_stringptr,   &sending_ip_address },
   { "sending_port",        vtype_int,         &sending_port },
   { "smtp_active_hostname", vtype_stringptr,  &smtp_active_hostname },
@@ -1792,7 +1796,7 @@ switch (vp->type)
   domain = Ustrrchr(s, '@');
   if (domain == NULL) return s;
   if (domain - s > sizeof(var_buffer) - 1)
-    log_write(0, LOG_MAIN|LOG_PANIC_DIE, "local part longer than " SIZE_T_FMT
+    log_write(0, LOG_MAIN, "local part longer than " SIZE_T_FMT
 	" in string expansion", sizeof(var_buffer));
   Ustrncpy(var_buffer, s, domain - s);
   var_buffer[domain - s] = 0;
