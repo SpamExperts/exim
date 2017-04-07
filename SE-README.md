@@ -109,4 +109,6 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
 
+### 14. Read encrypted conf
 
+ - Applied in [437d1207ca9b6fef71dea6a880060d42e2beb38e](https://github.com/SpamExperts/exim/commit/437d1207ca9b6fef71dea6a880060d42e2beb38e)
