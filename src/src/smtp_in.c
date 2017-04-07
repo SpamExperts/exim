@@ -3774,7 +3774,7 @@ smtp_respond(code, len, TRUE, user_msg);
 
 
 static int
-smtp_in_auth(auth_instance *au, uschar ** s, uschar ** ss)
+smtp_in_auth(auth_instance *au, uschar ** s, uschar ** ss, uschar *user_msg, uschar *log_msg)
 {
 const uschar *set_id = NULL;
 int rc;
@@ -3807,6 +3807,18 @@ can (did) happen. To guard against this, ensure that the id contains only
 printing characters. */
 
 if (set_id) set_id = string_printing(set_id);
+
+if (set_id != NULL) strcpy(smtp_cmd_argument, set_id);
+/* Check the ACL */
+if (acl_smtp_auth != NULL)
+ {
+  acl_rc = acl_check(ACL_WHERE_AUTH, NULL, acl_smtp_auth, &user_msg, &log_msg);
+  if (acl_rc != OK)
+  {
+    smtp_handle_acl_fail(ACL_WHERE_AUTH, acl_rc, user_msg, log_msg);
+    return acl_rc;
+  }
+ }
 
 /* For the non-OK cases, set up additional logging data if set_id
 is not empty. */
