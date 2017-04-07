@@ -11,7 +11,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
 
 ### Extend auth ACLs
 
- - Applied in e6feb53e8decf44deb5fc17157c14da81ac103aa
+ - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
  - Run ACL `acl_smtp_auth` AFTER the AUTH is completed instead of before
  - Add new ACL `acl_smtp_auth_accept` runs on AUTH success
  - Add new ACL `acl_smtp_auth_fail` runs on AUTH failure
@@ -21,7 +21,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
 
 ### Add events for temporary failures
 
- - Applied in e6feb53e8decf44deb5fc17157c14da81ac103aa
+ - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
  - Add new event `msg:defer:delivery` for temporary delivery error
  - Add new event `msg:defer:delivery:frozen` for temporary delivery error,
    resulting in the message being frozen
@@ -33,7 +33,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
 
 ### Destination response in callout checks
 
- - Applied in e6feb53e8decf44deb5fc17157c14da81ac103aa
+ - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
  - Exposes the destination response for callout checks.
  - Adds a new variable `$recipient_verify_message`, containing the upstream
    response for SMTP callout verifications on the recipient.
@@ -70,13 +70,13 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
 
 ### Installing exim as exim4
 
- - Applied in e6feb53e8decf44deb5fc17157c14da81ac103aa
+ - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/32_exim4.dpatch)
  - Accommodates source for installing exim as exim4.
 
 ### Disable version in binary
 
- - Applied in e6feb53e8decf44deb5fc17157c14da81ac103aa
+ - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/35_install.dpatch)
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
