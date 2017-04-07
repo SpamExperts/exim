@@ -30,6 +30,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - Add new event `msg:fail:delivery:bounced` for permanent delivery error,
    resulting in the message being removed from the queue and bounced.
  - Internal ticket `#21627`
+ - _(Latest version of exim has extra temporary failures)_
 
 ### 4. Destination response in callout checks
 
@@ -51,6 +52,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - Resolve not using synthesized SPF sender domain in DMARC.
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1994)
  - Internal ticket `#30818`
+ - _(Patch sent to upstream)_
 
 ### 6. DMARC forensic reports for reject & quarantine
 
@@ -58,6 +60,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - DMARC forensic reports should be sent when the domain is in "monitoring" mode
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1846)
  - Internal ticket `#30428`
+ - _(Included in upstream)_
 
 ### 7. Diagnostic-Code to the unroutable addresses
 
@@ -65,6 +68,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - Add Diagnostic code for unroutable addresses.
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1846)
  - Internal ticket `#30350`
+ - _(Rejected from upstream)_
 
 ### 8. Not-QUIT ACL connection lost after dot
 
@@ -75,6 +79,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
    in mailing list
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1872)
  - Internal ticket `#6423`
+ - _(Fixed in upstream but "connection-lost" event)_
 
 ### 9. Fix whitespace handling in local parts
 
@@ -82,6 +87,7 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
  - Fix whitespace handling in local parts while using ESMTP
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2025)
  - Internal ticket `#31209`
+ - _(Fixed in upstream)_
 
 ### 10. Expansion of local parts larger than 256 characters
 
