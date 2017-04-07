@@ -45,6 +45,27 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
    check was based on on the cache, False otherwise.
  - Internal ticket `#11866`, `#16480`
 
+### Synthesized SPF in DMARC check
+
+ - Applied in [e7bc977f7b6eb5989ccb30385f46513689c1ca34](https://github.com/SpamExperts/exim/commit/e7bc977f7b6eb5989ccb30385f46513689c1ca34)
+ - Resolve not using synthesized SPF sender domain in DMARC.
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1994)
+ - Internal ticket `#30818`
+
+### DMARC forensic reports for reject & quarantine
+
+ - Applied in [75710380510c6a174472b467fcb4fe8c3ec2e343](https://github.com/SpamExperts/exim/commit/75710380510c6a174472b467fcb4fe8c3ec2e343)
+ - DMARC forensic reports should be sent when the domain is in "monitoring" mode
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1846)
+ - Internal ticket `#30428`
+
+### Diagnostic-Code to the unroutable addresses
+
+ - Applied in [9863c19c0f49b48b961964ff8d0f0ac8614ca122](https://github.com/SpamExperts/exim/commit/9863c19c0f49b48b961964ff8d0f0ac8614ca122)
+ - Add Diagnostic code for unroutable addresses.
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1846)
+ - Internal ticket `#30350`
+
 ### Not-QUIT ACL connection lost after dot
 
  - Applied [here](https://github.com/SpamExperts/exim/commit/e6feb53e8decf44deb5fc17157c14da81ac103aa#diff-9e69cea182c1366d6c233904d02dd6f5R3940)
@@ -54,6 +75,13 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
    in mailing list
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1872)
  - Internal ticket `#6423`
+
+### Fix whitespace handling in local parts
+
+ - Applied [here](https://github.com/SpamExperts/exim/commit/5e96a79f69cf824453cd8076b567b7d132d17a81)
+ - Fix whitespace handling in local parts while using ESMTP
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2025)
+ - Internal ticket `#31209`
 
 ### Expansion of local parts larger than 256 characters
 
@@ -70,13 +98,13 @@ This documents the patches applied on the upstream `exim-4_86_2+fixes` branch:
 
 ### Installing exim as exim4
 
- - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
+ - Applied in [5925cc2a5843b5c8b102f6d1985152da0f32a283](https://github.com/SpamExperts/exim/commit/5925cc2a5843b5c8b102f6d1985152da0f32a283)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/32_exim4.dpatch)
  - Accommodates source for installing exim as exim4.
 
 ### Disable version in binary
 
- - Applied in [e6feb53e8decf44deb5fc17157c14da81ac103aa](https://github.com/SpamExperts/exim/commit/0731b18fe371a72821afabc030471b3c890695bd)
+ - Applied in [c688cdc700e921aba48e3ebf2b2e4004ac52593f](https://github.com/SpamExperts/exim/commit/c688cdc700e921aba48e3ebf2b2e4004ac52593f)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/35_install.dpatch)
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
