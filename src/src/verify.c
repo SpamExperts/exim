@@ -1239,6 +1239,7 @@ void
 cutthrough_data_puts(uschar * cp, int n)
 {
 if (cutthrough.delivery) (void) cutthrough_puts(cp, n);
+return;
 }
 
 
@@ -1371,7 +1372,7 @@ return TRUE;
 
 
 static void
-close_cutthrough_connection(const char * why)
+close_cutthrough_connection(const uschar * why)
 {
 int fd = cutthrough.fd;
 if(fd >= 0)
@@ -1446,7 +1447,7 @@ for (addr = &cutthrough.addr; addr; addr = addr->next)
     {
     case '2':
       delivery_log(LOG_MAIN, addr, (int)'>', NULL);
-      close_cutthrough_connection("delivered");
+      close_cutthrough_connection(US"delivered");
       break;
 
     case '4':
