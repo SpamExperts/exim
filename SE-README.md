@@ -2,7 +2,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 1. XCLIENT support
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/7c63e5c04da12dfaa4b17b3f007ad63c60935af8)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/3798d48d73c89f7835726d31f096851f7f7fca2a)
  - Based on this [patch](http://highsecure.ru/patch-exim-xclient)
  - Add support for [XCLIENT](http://www.postfix.org/XCLIENT_README.html)
  - Adds a new main option `xclient_allow_hosts`, only exposing the XCLIENT
@@ -11,7 +11,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 2. Extend auth ACLs
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/f571e17cab58e2f368994559ad94c534dcc2f515)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/23614f8d4c0fdea0ec3d293c0c9e78dba5b56837)
  - Run ACL `acl_smtp_auth` AFTER the AUTH is completed instead of before
  - Add new ACL `acl_smtp_auth_accept` runs on AUTH success
  - Add new ACL `acl_smtp_auth_fail` runs on AUTH failure
@@ -21,7 +21,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 3. Add events for temporary failures
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/f3f393c68852477d91a6d8ad7d294171d58b41a8)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/7786bcb2e83f841a3ec42406a419eeb32f01c19d)
  - Add new event `msg:defer:delivery` for temporary delivery error
  - Add new event `msg:defer:delivery:frozen` for temporary delivery error,
    resulting in the message being frozen
@@ -33,7 +33,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 4. Destination response in callout checks
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/e8d9d96bbb991b562c905ec414a8443e067fd5f7)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/9bb817e19d3b2f1a14fd9a9ed8518e54e4ad6779)
  - Exposes the destination response for callout checks.
  - Adds a new variable `$recipient_verify_message`, containing the upstream
    response for SMTP callout verifications on the recipient.
@@ -47,7 +47,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 5. Synthesized SPF in DMARC check
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/8270cf0d8b421b23e6958b38fc29987314e3cab7)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/7009ae3e7e053af3dbe26bead87d0381028c9bea)
  - Resolve not using synthesized SPF sender domain in DMARC.
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1994)
  - Internal ticket `#30818`
@@ -55,7 +55,7 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 6. Diagnostic-Code to the unroutable addresses
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/5474322b42fbdde2c9620a05d8ea2abe24524109)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/3da1e173b860eb84aa240022ebbfb0c6410a443e)
  - Add Diagnostic code for unroutable addresses.
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=1846)
  - Internal ticket `#30350`
@@ -63,32 +63,32 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 7. Not-QUIT ACL connection lost after dot
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/c1f443f258a90a5f1c8652ae7874a2e47f525657)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/f082bb8e1c1b8bd05680a16ea586d718eda14ef8)
  - Change `connection-lost` to `connection-lost-after-dot`.
  - Internal ticket `#6423`
 
 ### 8. Expansion of local parts larger than 256 characters
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/dcd13bcbe04da6baf58b8b182ef38fb90f19d251)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/d954f4eeea83d25b552adbba9b80513bd0d03701)
  - Logs failing to expand local parts larger than 256 characters to mainlog 
    instead of panic log.
  - Internal ticket `#8057`
 
 ### 9. Extend header add buffer size
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/9d04866981beb997db4b109e9c671b0066c8924d)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/e85955d0150d2e4503650201a31e52ea9dc34c40)
  - Increase `HEADER_ADD_BUFFER_SIZE` value from `8192 * 4` to `8192 * 10`
  - Internal ticket `#8958`
 
 ### 10. Installing exim as exim4
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/0f566795bb1e0492926b17626e404c79ca0955db)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/8d50cef4792cc0966654d80d9607157f26582962)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/32_exim4.dpatch)
  - Accommodates source for installing exim as exim4.
 
 ### 11. Disable version in binary
 
- - Applied [here](https://github.com/SpamExperts/exim/commit/51bdf1e7aff74abdd5000a58634bacae95355e1f)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/b5b69438587be03b207fd9c7218bb5d4e7391781)
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/35_install.dpatch)
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
