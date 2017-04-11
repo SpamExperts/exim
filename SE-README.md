@@ -93,3 +93,15 @@ This documents the patches applied on the upstream `exim-4_89` branch:
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
 
+### 12. Disable VRFY advertisement
+
+ - Applied [here](https://github.com/SpamExperts/exim/commit/7b02f294e6b73d076e6d6dcb1d82a7038b88c9c6)
+ - Disabled advertisement of `VRFY`
+ - Internal ticket `#30986`
+ 
+### 13. Disable CHUNKING by default
+
+ - Applied [here](https://github.com/SpamExperts/exim/commit/350b458a408c212615259f188454311b77423903)
+ - The CHUNKING extension is no longer advertised by default.
+ - Internal ticket `#30986`
+  
