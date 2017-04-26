@@ -1413,6 +1413,7 @@ cutthrough.delivery = cutthrough.callout_hold_only = FALSE;
 void
 release_cutthrough_connection(const uschar * why)
 {
+if (cutthrough.fd < 0) return;
 HDEBUG(D_acl) debug_printf_indent("release cutthrough conn: %s\n", why);
 cutthrough.fd = -1;
 cutthrough.delivery = cutthrough.callout_hold_only = FALSE;
