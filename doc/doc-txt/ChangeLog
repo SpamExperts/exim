@@ -63,7 +63,48 @@ JH/09 Avoid using a temporary file during transport using dkim.  Unless a
 
 JH/10 Enable use of sendfile in Linux builds as default.  It was disabled in
       4.77 as the kernel support then wasn't solid, having issues in 64bit
-      mode.  Now, it's been long enough.
+      mode.  Now, it's been long enough.  Add support for FreeBSD also.
+
+JH/11 Bug 2104: Fix continued use of a transport connection with TLS.  In the
+      case where the routing stage had gathered several addresses to send to
+      a host before calling the transport for the first, we previously failed
+      to close down TLS in the old transport process before passing the TCP
+      connection to the new process.  The new one sent a STARTTLS command
+      which naturally failed, giving a failed delivery and bloating the retry
+      database.  Investigation and fix prototype from Wolfgang Breyha.
+
+JH/12 Fix check on SMTP command input synchronisation.  Previously there were
+      false-negatives in the check that the sender had not preempted a response
+      or prompt from Exim (running as a server), due to that code's lack of
+      awareness of the SMTP input buffering.
+
+PP/04 Add commandline_checks_require_admin option.
+      Exim drops privileges sanely, various checks such as -be aren't a
+      security problem, as long as you trust local users with access to their
+      own account.  When invoked by services which pass untrusted data to
+      Exim, this might be an issue.  Set this option in main configuration
+      AND make fixes to the calling application, such as using `--` to stop
+      processing options.
+
+JH/13 Do pipelining under TLS.  Previously, although safe, no advantage was
+      taken.  Now take care to pack both (client) MAIL,RCPT,DATA, and (server)
+      responses to those, into a single TLS record each way (this usually means
+      a single packet).  As a side issue, smtp_enforce_sync now works on TLS
+      connections.
+
+PP/05 OpenSSL/1.1: use DH_bits() for more accurate DH param sizes.  This
+      affects you only if you're dancing at the edge of the param size limits.
+      If you are, and this message makes sense to you, then: raise the
+      configured limit or use OpenSSL 1.1.  Nothing we can do for older
+      versions.
+
+JH/14 For the "sock" variant of the malware scanner interface, accept an empty
+      cmdline element to get the documented default one.  Previously it was
+      inaccessible.
+
+JH/15 Fix a crash in the smtp transport caused when two hosts in succession
+      are unsuable for non-message-specific reasons - eg. connection timeout,
+      banner-time rejection.
 
 
 Exim version 4.89
