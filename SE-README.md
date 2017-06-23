@@ -92,4 +92,11 @@ This documents the patches applied on the upstream `exim-4_89` branch:
  - Based on this [Debian patch](https://anonscm.debian.org/git/pkg-exim4/exim4.git/tree/debian/patches/35_install.dpatch)
  - Exim's installation scripts install the binary as exim-<version> - disable
    this feature.
+   
+### 12. Fix handling temporary rejection at callout
+
+ - Correctly handles 4XX rejections when doing the random callout check.
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2137)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/6bc3d4e9dc26a178cd09592e818c836cf83183db)
+ - Internal ticket `#32589`
 
