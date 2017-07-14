@@ -96,7 +96,13 @@ This documents the patches applied on the upstream `exim-4_89` branch:
 ### 12. Fix handling temporary rejection at callout
 
  - Correctly handles 4XX rejections when doing the random callout check.
- - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2137)
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2137) - Reject from upstream. 
  - Applied [here](https://github.com/SpamExperts/exim/commit/6bc3d4e9dc26a178cd09592e818c836cf83183db)
  - Internal ticket `#32589`
 
+### 13. Fix handling of catchall callouts
+
+ - Correctly handles non cached 2XX acceptance for random callout check
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2147)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/9c88c072edf6946a200d4b4261f46274086d68b8)
+ - Internal ticket `#32828` 
