@@ -106,3 +106,10 @@ This documents the patches applied on the upstream `exim-4_89` branch:
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2147)
  - Applied [here](https://github.com/SpamExperts/exim/commit/9c88c072edf6946a200d4b4261f46274086d68b8)
  - Internal ticket `#32828` 
+
+### 14. Fix use of SIZE in callouts
+
+ - Do not permit SIZE in callouts.
+ - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2151)
+ - Applied [here](https://github.com/SpamExperts/exim/commit/f8ce4203d75a5bc03c6436adfe77e12d722527b9)
+ - Internal ticket `#32870`
