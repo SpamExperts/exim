@@ -1,6 +1,6 @@
 # SolarWinds/SpamExperts Exim Fork
 
-This is a fork of the [Exim][https://exim.org] repository, used by SolarWinds for SpamExperts and Mail Assure products. We have a few patches (almost always with corresponding pull requests upstream) to fix issues or add functionality that we need.
+This is a fork of the [Exim](https://exim.org) repository, used by SolarWinds for SpamExperts and Mail Assure products. We have a few patches (almost always with corresponding pull requests upstream) to fix issues or add functionality that we need.
 
 ## Maintainers
 
