@@ -1,3 +1,14 @@
+# SolarWinds/SpamExperts Exim Fork
+
+This is a fork of the [Exim][https://exim.org] repository, used by SolarWinds for SpamExperts and Mail Assure products. We have a few patches (almost always with corresponding pull requests upstream) to fix issues or add functionality that we need.
+
+## Maintainers
+
+ * Dreas van Donselaar
+ * Tony Meyer, [@tonyandrewmeyer](https://github.com/tonyandrewmeyer), tony@spamexperts.com / tony.meyer@solarwinds.com, `8C18 54E2 D857 63E1 1506  C6A7 F9B9 322B 826F D935`
+ * Mikhael Anisimov
+ * Alexandru Chirila
+
 This documents the patches applied on the upstream `exim-4_89` branch:
 
 ### 1. XCLIENT support
