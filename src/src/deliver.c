@@ -5315,6 +5315,9 @@ Returns:       nothing
 static void
 print_dsn_diagnostic_code(const address_item *addr, FILE *f)
 {
+
+if (addr == NULL) return;
+
 uschar *s;
 DEBUG(D_deliver)
   debug_printf("DSN Diagnostic-Code: pass_message=%s, message=%s, user_message=%s\n", testflag(addr, af_pass_message), addr->message, addr->user_message);
