@@ -124,3 +124,11 @@ This documents the patches applied on the upstream `exim-4_89` branch:
  - [Exim bug](https://bugs.exim.org/show_bug.cgi?id=2151)
  - Applied [here](https://github.com/SpamExperts/exim/commit/f8ce4203d75a5bc03c6436adfe77e12d722527b9)
  - Internal ticket `#32870`
+ 
+ ### 15. Fix segfault in `print_dsn_diagnostic_code`
+ 
+ - Add extra condition to prevent exim segfaults in `print_dsn_diagnostic_code`
+ - [~~Exim bug~~](#) 
+ - Applied [here](https://github.com/SpamExperts/exim/commit/0e21c6a261ccccb671a4069c9c00058345acbf44)
+ - Internal ticket `#36071`
+ 
