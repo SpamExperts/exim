@@ -808,7 +808,7 @@ tls_retry_connection:
 	  case FAIL:		/* rejected: the preferred result */
 	    new_domain_record.random_result = ccache_reject;
 	    sx.avoid_option = 0;
-
+          case DEFER:
 	    /* Between each check, issue RSET, because some servers accept only
 	    one recipient after MAIL FROM:<>.
 	    XXX We don't care about that for postmaster_full.  Should we? */
@@ -838,8 +838,6 @@ tls_retry_connection:
 	    sx.send_rset = TRUE;
 	    sx.completed_addr = FALSE;
 	    goto tls_retry_connection;
-	  case DEFER:		/* 4xx response to random */
-	    break;		/* Just to be clear. ccache_unknown, !done. */
 	  }
 
       /* Re-setup for main verify, or for the error message when failing */
