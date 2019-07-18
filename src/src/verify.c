@@ -807,8 +807,9 @@ tls_retry_connection:
 	    goto no_conn;
 	  case FAIL:		/* rejected: the preferred result */
 	    new_domain_record.random_result = ccache_reject;
+	  case DEFER:
 	    sx.avoid_option = 0;
-          case DEFER:
+
 	    /* Between each check, issue RSET, because some servers accept only
 	    one recipient after MAIL FROM:<>.
 	    XXX We don't care about that for postmaster_full.  Should we? */
