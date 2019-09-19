@@ -1627,8 +1627,8 @@ else if (f.daemon_listen)
   int i, j;
   int smtp_ports = 0;
   int smtps_ports = 0;
-  ip_address_item * ipa;
-  uschar * p;
+  ip_address_item * ipa, * i2;
+  uschar * p = big_buffer;
   uschar * qinfo = queue_interval > 0
     ? string_sprintf("-q%s", readconf_printtime(queue_interval))
     : US"no queue runs";
@@ -1640,19 +1640,27 @@ else if (f.daemon_listen)
   deprecated protocol that starts TLS without using STARTTLS), and others
   listening for standard SMTP. Keep their listings separate. */
 
-  for (int j = 0, i; j < 2; j++)
+  for (j = 0; j < 2; j++)
     {
     for (i = 0, ipa = addresses; i < 10 && ipa; i++, ipa = ipa->next)
       {
       /* First time round, look for SMTP ports; second time round, look for
-      SMTPS ports. Build IP+port strings. */
+      SMTPS ports. For the first one of each, insert leading text. */
 
       if (host_is_tls_on_connect_port(ipa->port) == (j > 0))
 	{
 	if (j == 0)
-	  smtp_ports++;
+	  {
+	  if (smtp_ports++ == 0)
+	    {
+	    memcpy(p, "SMTP on", 8);
+	    p += 7;
+	    }
+	  }
 	else
-	  smtps_ports++;
+	  if (smtps_ports++ == 0)
+	    p += sprintf(CS p, "%sSMTPS on",
+	      smtp_ports == 0 ? "" : " and for ");
 
 	/* Now the information about the port (and sometimes interface) */
 
@@ -1661,67 +1669,40 @@ else if (f.daemon_listen)
 	  if (ipa->next && ipa->next->address[0] == 0 &&
 	      ipa->next->port == ipa->port)
 	    {
-	    ipa->log = string_sprintf(" port %d (IPv6 and IPv4)", ipa->port);
-	    (ipa = ipa->next)->log = NULL;
+	    p += sprintf(CS p, " port %d (IPv6 and IPv4)", ipa->port);
+	    ipa = ipa->next;
 	    }
 	  else if (ipa->v6_include_v4)
-	    ipa->log = string_sprintf(" port %d (IPv6 with IPv4)", ipa->port);
+	    p += sprintf(CS p, " port %d (IPv6 with IPv4)", ipa->port);
 	  else
-	    ipa->log = string_sprintf(" port %d (IPv6)", ipa->port);
+	    p += sprintf(CS p, " port %d (IPv6)", ipa->port);
 	  }
 	else if (ipa->address[0] == 0)			/* v4 wildcard */
-	  ipa->log = string_sprintf(" port %d (IPv4)", ipa->port);
+	  p += sprintf(CS p, " port %d (IPv4)", ipa->port);
 	else				/* check for previously-seen IP */
 	  {
-	  ip_address_item * i2;
 	  for (i2 = addresses; i2 != ipa; i2 = i2->next)
 	    if (  host_is_tls_on_connect_port(i2->port) == (j > 0)
 	       && Ustrcmp(ipa->address, i2->address) == 0
 	       )
 	      {				/* found; append port to list */
-	      for (p = i2->log; *p; ) p++;	/* end of existing string */
-	      if (*--p == '}') *p = '\0';	/* drop EOL */
-	      while (isdigit(*--p)) ;		/* char before port */
-
-	      i2->log = *p == ':'		/* no list yet? */
-		? string_sprintf("%.*s{%s,%d}",
-		  (int)(p - i2->log + 1), i2->log, p+1, ipa->port)
-		: string_sprintf("%s,%d}", i2->log, ipa->port);
-	      ipa->log = NULL;
+	      if (p[-1] == '}') p--;
+	      while (isdigit(*--p)) ;
+	      p +=  1 + sprintf(CS p+1, "%s%d,%d}", *p == ',' ? "" : "{",
+		i2->port, ipa->port);
 	      break;
 	      }
 	  if (i2 == ipa)		/* first-time IP */
-	    ipa->log = string_sprintf(" [%s]:%d", ipa->address, ipa->port);
+	    p += sprintf(CS p, " [%s]:%d", ipa->address, ipa->port);
 	  }
 	}
       }
-    }
-
-  p = big_buffer;
-  for (int j = 0, i; j < 2; j++)
-    {
-    /* First time round, look for SMTP ports; second time round, look for
-    SMTPS ports. For the first one of each, insert leading text. */
-
-    if (j == 0)
-      {
-      if (smtp_ports > 0)
-	p += sprintf(CS p, "SMTP on");
-      }
-    else
-      if (smtps_ports > 0)
-	p += sprintf(CS p, "%sSMTPS on",
-	  smtp_ports == 0 ? "" : " and for ");
-
-    /* Now the information about the port (and sometimes interface) */
-
-    for (i = 0, ipa = addresses; i < 10 && ipa; i++, ipa = ipa->next)
-      if (host_is_tls_on_connect_port(ipa->port) == (j > 0))
-	if (ipa->log)
-	  p += sprintf(CS p, "%s",  ipa->log);
 
     if (ipa)
-      p += sprintf(CS p, " ...");
+      {
+      memcpy(p, " ...", 5);
+      p += 4;
+      }
     }
 
   log_write(0, LOG_MAIN,

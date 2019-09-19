@@ -274,7 +274,6 @@ Server:
 typedef struct {
   SSL_CTX *	ctx;
   SSL *		ssl;
-  gstring *	corked;
 } exim_openssl_client_tls_ctx;
 
 static SSL_CTX *server_ctx = NULL;
@@ -2474,7 +2473,6 @@ BOOL require_ocsp = FALSE;
 rc = store_pool;
 store_pool = POOL_PERM;
 exim_client_ctx = store_get(sizeof(exim_openssl_client_tls_ctx));
-exim_client_ctx->corked = NULL;
 store_pool = rc;
 
 #ifdef SUPPORT_DANE
@@ -2910,12 +2908,8 @@ int
 tls_write(void * ct_ctx, const uschar *buff, size_t len, BOOL more)
 {
 int outbytes, error, left;
-SSL * ssl = ct_ctx
-  ? ((exim_openssl_client_tls_ctx *)ct_ctx)->ssl : server_ssl;
-static gstring * server_corked = NULL;
-gstring ** corkedp = ct_ctx
-  ? &((exim_openssl_client_tls_ctx *)ct_ctx)->corked : &server_corked;
-gstring * corked = *corkedp;
+SSL * ssl = ct_ctx ? ((exim_openssl_client_tls_ctx *)ct_ctx)->ssl : server_ssl;
+static gstring * corked = NULL;
 
 DEBUG(D_tls) debug_printf("%s(%p, %lu%s)\n", __FUNCTION__,
   buff, (unsigned long)len, more ? ", more" : "");
@@ -2923,12 +2917,9 @@ DEBUG(D_tls) debug_printf("%s(%p, %lu%s)\n", __FUNCTION__,
 /* Lacking a CORK or MSG_MORE facility (such as GnuTLS has) we copy data when
 "more" is notified.  This hack is only ok if small amounts are involved AND only
 one stream does it, in one context (i.e. no store reset).  Currently it is used
-for the responses to the received SMTP MAIL , RCPT, DATA sequence, only.
-We support callouts done by the server process by using a separate client
-context for the stashed information. */
-/* + if PIPE_COMMAND, banner & ehlo-resp for smmtp-on-connect. Suspect there's
-a store reset there, so use POOL_PERM. */
-/* + if CHUNKING, cmds EHLO,MAIL,RCPT(s),BDAT */
+for the responses to the received SMTP MAIL , RCPT, DATA sequence, only. */
+/*XXX + if PIPE_COMMAND, banner & ehlo-resp for smmtp-on-connect. Suspect there's
+a store reset there. */
 
 if (!ct_ctx && (more || corked))
   {
@@ -2944,13 +2935,10 @@ if (!ct_ctx && (more || corked))
 #endif
 
   if (more)
-    {
-    *corkedp = corked;
     return len;
-    }
   buff = CUS corked->s;
   len = corked->ptr;
-  *corkedp = NULL;
+  corked = NULL;
   }
 
 for (left = len; left > 0;)

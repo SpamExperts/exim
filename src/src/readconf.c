@@ -19,7 +19,7 @@ implementation of the conditional .ifdef etc. */
 
 
 static uschar * syslog_facility_str;
-static void fn_smtp_receive_timeout(const uschar *, const uschar *, unsigned);
+static void fn_smtp_receive_timeout(const uschar *, const uschar *);
 
 /*************************************************
 *           Main configuration options           *
@@ -40,8 +40,6 @@ static optionlist optionlist_config[] = {
 #endif
   { "acl_not_smtp_start",       opt_stringptr,   &acl_not_smtp_start },
   { "acl_smtp_auth",            opt_stringptr,   &acl_smtp_auth },
-  { "acl_smtp_auth_accept",     opt_stringptr,   &acl_smtp_auth_accept },
-  { "acl_smtp_auth_fail",       opt_stringptr,   &acl_smtp_auth_fail },
   { "acl_smtp_connect",         opt_stringptr,   &acl_smtp_connect },
   { "acl_smtp_data",            opt_stringptr,   &acl_smtp_data },
 #ifndef DISABLE_PRDR
@@ -384,8 +382,7 @@ static optionlist optionlist_config[] = {
   { "uucp_from_pattern",        opt_stringptr,   &uucp_from_pattern },
   { "uucp_from_sender",         opt_stringptr,   &uucp_from_sender },
   { "warn_message_file",        opt_stringptr,   &warn_message_file },
-  { "write_rejectlog",          opt_bool,        &write_rejectlog },
-  { "xclient_allow_hosts",      opt_stringptr,   &xclient_allow_hosts },
+  { "write_rejectlog",          opt_bool,        &write_rejectlog }
 };
 
 #ifndef MACRO_PREDEF
@@ -395,8 +392,7 @@ static int optionlist_config_size = nelem(optionlist_config);
 
 #ifdef MACRO_PREDEF
 
-static void
-fn_smtp_receive_timeout(const uschar * name, const uschar * str, unsigned flags) {/*Dummy*/}
+static void fn_smtp_receive_timeout(const uschar * name, const uschar * str) {/*Dummy*/}
 
 void
 options_main(void)
@@ -563,8 +559,6 @@ static syslog_fac_item syslog_list[] = {
 static int syslog_list_size = sizeof(syslog_list)/sizeof(syslog_fac_item);
 
 
-#define opt_fn_print		BIT(0)
-#define opt_fn_print_label	BIT(1)
 
 
 /*************************************************
@@ -771,9 +765,6 @@ return TRUE;
 
 
 
-/*****************************************************
-*    SpamExperts Domain Configuration Encryption     *
-*****************************************************/
 
 
 /* Process line for macros. The line is in big_buffer starting at offset len.
@@ -878,59 +869,6 @@ while (isspace(*ss)) ss++;
 return ss;
 }
 
-#include <string.h>
-#include <openssl/aes.h>
-
-const unsigned char KEY[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-
-void decrypt(uschar *s, const unsigned int length)
-{
-    unsigned int i;
-    uschar temp[length];
-    AES_KEY key;
-    AES_set_decrypt_key(KEY, 256, &key);
-    for (i=0; i < length; i += 16)
-    {
-        AES_decrypt(s+i, temp+i, &key);
-    }
-    memcpy(s, temp, length);
-    s[length] = '\0';
-}
-
-int get_encrypted_s(int len)
-{
-  int read_c;
-  unsigned int j;
-  unsigned int read_i;
-  for (read_i=0; read_i<big_buffer_size-len; ++read_i)
-  {
-    read_c = fgetc(config_file);
-    if (read_c == EOF)
-    {
-      break;
-    }
-    big_buffer[len+read_i] = read_c;
-    if (read_i >= 8 &&
-        strncmp(big_buffer+len+read_i-8, "_newline_", 9) == 0)
-    {
-      read_i -= 8;
-      big_buffer[len+read_i] = '\n';
-    }
-    else if (big_buffer[len+read_i] == '\n')
-    {
-      break;
-    }
-  }
-  for (j=0; j<16, j<big_buffer_size-len-read_i; ++j)
-  {
-    big_buffer[len+read_i+j] = '\0';
-  }
-  decrypt(big_buffer+len, read_i+1);
-  if (read_c == EOF && read_i == 0)
-    return 1;
-  return 0;
-}
-
 /*************************************************
 *            Read configuration line             *
 *************************************************/
@@ -967,9 +905,7 @@ BOOL macro_found;
 
 for (;;)
   {
-  /* We cannot use Ufgets because we need the length of the string read. */
-  int read_c = get_encrypted_s(len);
-  if (read_c)
+  if (Ufgets(big_buffer+len, big_buffer_size-len, config_file) == NULL)
     {
     if (config_file_stack != NULL)    /* EOF inside .include */
       {
@@ -1017,11 +953,8 @@ for (;;)
     Ustrcpy(newbuffer, big_buffer);
     store_free(big_buffer);
     big_buffer = newbuffer;
-
-    read_c = get_encrypted_s(newlen);
-    if (read_c)
+    if (Ufgets(big_buffer+newlen, big_buffer_size-newlen, config_file) == NULL)
       break;
-
     newlen += Ustrlen(big_buffer + newlen);
     }
 
@@ -1599,16 +1532,9 @@ return yield;
 *            Custom-handler options              *
 *************************************************/
 static void
-fn_smtp_receive_timeout(const uschar * name, const uschar * str, unsigned flags)
+fn_smtp_receive_timeout(const uschar * name, const uschar * str)
 {
-if (flags & opt_fn_print)
-  {
-  if (flags & opt_fn_print_label) printf("%s = ", name);
-  printf("%s\n", smtp_receive_timeout_s
-    ? string_printing2(smtp_receive_timeout_s, FALSE)
-    : readconf_printtime(smtp_receive_timeout));
-  }
-else if (*str == '$')
+if (*str == '$')
   smtp_receive_timeout_s = string_copy(str);
 else
   {
@@ -2402,7 +2328,7 @@ switch (type)
   case opt_func:
     {
     void (*fn)() = ol->value;
-    fn(name, s, 0);
+    fn(name, s);
     break;
     }
   }
@@ -2744,13 +2670,6 @@ switch(ol->type & opt_mask)
   case opt_bool_set:
     printf("%s%s\n", (*((BOOL *)value))? "" : "no_", name);
     break;
-
-  case opt_func:
-    {
-    void (*fn)() = ol->value;
-    fn(name, NULL, no_labels ? opt_fn_print : opt_fn_print|opt_fn_print_label);
-    break;
-    }
   }
 return TRUE;
 }
@@ -2843,7 +2762,7 @@ if (!type)
 
   if (Ustrcmp(name, "all") == 0)
     {
-    for (optionlist * ol = optionlist_config;
+    for (ol = optionlist_config;
          ol < optionlist_config + nelem(optionlist_config); ol++)
       if (!(ol->type & opt_hidden))
         (void) print_ol(ol, US ol->name, NULL,
@@ -2858,7 +2777,7 @@ if (!type)
     printf("local_scan() options are not supported\n");
     return FALSE;
 #else
-    for (optionlist * ol = local_scan_options;
+    for (ol = local_scan_options;
          ol < local_scan_options + local_scan_options_count; ol++)
       (void) print_ol(ol, US ol->name, NULL, local_scan_options,
 		  local_scan_options_count, no_labels);

@@ -759,7 +759,6 @@ while ((s = string_nextinlist(&list, &sep, NULL, 0)))
   Ustrcpy(next->address, s);
   next->port = port;
   next->v6_include_v4 = FALSE;
-  next->log = NULL;
 
   if (!yield)
     yield = last = next;

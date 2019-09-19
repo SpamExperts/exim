@@ -11,7 +11,7 @@
 #ifdef SUPPORT_SPF
 
 /* Yes, we do have ns_type. spf.h redefines it if we don't set this. Doh */
-#if !defined(HAVE_NS_TYPE) && defined(NS_INADDRSZ)
+#ifndef HAVE_NS_TYPE
 # define HAVE_NS_TYPE
 #endif
 #include <spf2/spf.h>

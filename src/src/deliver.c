@@ -1693,16 +1693,6 @@ else if (result == DEFER || result == PANIC)
   log or the main log for SMTP defers. */
 
   if (!f.queue_2stage || addr->basic_errno != 0)
-#ifndef DISABLE_EVENT
-    /* Skip this event for errors of the type "retry time not reached" */
-    if (addr->basic_errno >= ERRNO_RETRY_BASE)
-    {
-      if (f.deliver_freeze)
-        msg_event_raise(US"msg:defer:delivery:frozen", addr);
-      else
-        msg_event_raise(US"msg:defer:delivery", addr);
-    }
-#endif
     deferral_log(addr, now, logflags, driver_name, driver_kind);
   }
 
@@ -5437,31 +5427,18 @@ Returns:       nothing
 static void
 print_dsn_diagnostic_code(const address_item *addr, FILE *f)
 {
-if (addr == NULL) return;
-
-uschar *s;
-DEBUG(D_deliver)
-  debug_printf("DSN Diagnostic-Code: pass_message=%s, message=%s, user_message=%s\n", testflag(addr, af_pass_message), addr->message, addr->user_message);
-
-
+uschar *s = testflag(addr, af_pass_message) ? addr->message : NULL;
 
 /* af_pass_message and addr->message set ? print remote host answer */
-/* search first ": ". we assume to find the remote-MTA answer there */
-if (testflag(addr, af_pass_message) && addr->message && Ustrstr(addr->message, ": "))
-  {
-  s = addr->message;
-  s = Ustrstr(addr->message, ": ");
-  s += 2;
-  }
-else
-  {
-  s = addr->user_message;
-  }
-DEBUG(D_deliver)
-  debug_printf("DSN Diagnostic-Code: %s\n", s);
-
 if (s)
   {
+  DEBUG(D_deliver)
+    debug_printf("DSN Diagnostic-Code: addr->message = %s\n", addr->message);
+
+  /* search first ": ". we assume to find the remote-MTA answer there */
+  if (!(s = Ustrstr(addr->message, ": ")))
+    return;				/* not found, bail out */
+  s += 2;  /* skip ": " */
   fprintf(f, "Diagnostic-Code: smtp; ");
   }
 /* no message available. do nothing */
@@ -5528,25 +5505,6 @@ while ((addr = *anchor))
 }
 
 
-
-
-/************************************************/
-
-static void
-print_dsn_addr_action(FILE * f, address_item * addr,
-  uschar * action, uschar * status)
-{
-address_item * pa;
-
-if (addr->dsn_orcpt)
-  fprintf(f,"Original-Recipient: %s\n", addr->dsn_orcpt);
-
-for (pa = addr; pa->parent; ) pa = pa->parent;
-fprintf(f, "Action: %s\n"
-    "Final-Recipient: rfc822;%s\n"
-    "Status: %s\n",
-  action, pa->address, status);
-}
 
 
 /*************************************************
@@ -7407,8 +7365,8 @@ if (addr_senddsn)
     if (errors_reply_to)
       fprintf(f, "Reply-To: %s\n", errors_reply_to);
 
-    moan_write_from(f);
     fprintf(f, "Auto-Submitted: auto-generated\n"
+	"From: Mail Delivery System <Mailer-Daemon@%s>\n"
 	"To: %s\n"
 	"Subject: Delivery Status Notification\n"
 	"Content-Type: multipart/report; report-type=delivery-status; boundary=%s\n"
@@ -7419,7 +7377,7 @@ if (addr_senddsn)
 
 	"This message was created automatically by mail delivery software.\n"
 	" ----- The following addresses had successful delivery notifications -----\n",
-      sender_address, bound, bound);
+      qualify_domain_sender, sender_address, bound, bound);
 
     for (addr_dsntmp = addr_senddsn; addr_dsntmp;
 	 addr_dsntmp = addr_dsntmp->next)
@@ -7452,7 +7410,10 @@ if (addr_senddsn)
       if (addr_dsntmp->dsn_orcpt)
         fprintf(f,"Original-Recipient: %s\n", addr_dsntmp->dsn_orcpt);
 
-      print_dsn_addr_action(f, addr_dsntmp, US"delivered", US"2.0.0");
+      fprintf(f, "Action: delivered\n"
+	  "Final-Recipient: rfc822;%s\n"
+	  "Status: 2.0.0\n",
+	addr_dsntmp->address);
 
       if (addr_dsntmp->host_used && addr_dsntmp->host_used->name)
         fprintf(f, "Remote-MTA: dns; %s\nDiagnostic-Code: smtp; 250 Ok\n\n",
@@ -7472,7 +7433,7 @@ if (addr_senddsn)
 
     tctx.u.fd = fd;
     tctx.options = topt_add_return_path | topt_no_body;
-    /*XXX hmm, FALSE(fail) retval ignored.
+    /*XXX hmm, retval ignored.
     Could error for any number of reasons, and they are not handled. */
     transport_write_message(&tctx, 0);
     fflush(f);
@@ -7511,11 +7472,6 @@ while (addr_failed)
   DEBUG(D_deliver)
     debug_printf("processing failed address %s\n", addr_failed->address);
 
-#ifndef DISABLE_EVENT
-  for (addr = addr_failed; addr != NULL; addr = addr->next)
-    msg_event_raise(US"msg:fail:delivery:expired", addr);
-#endif
-
   /* There are only two ways an address in a bounce message can get here:
 
   (1) When delivery was initially deferred, but has now timed out (in the call
@@ -7547,8 +7503,7 @@ while (addr_failed)
   mark the recipient done. */
 
   if (  addr_failed->prop.ignore_error
-     ||    addr_failed->dsn_flags & rf_dsnflags
-	&& !(addr_failed->dsn_flags & rf_notify_failure)
+     || addr_failed->dsn_flags & (rf_dsnflags & ~rf_notify_failure)
      )
     {
     addr = addr_failed;
@@ -7812,7 +7767,6 @@ wording. */
           addr->next = handled_addr;
           handled_addr = topaddr;
           }
-       print_dsn_diagnostic_code(addr, fp);
 	fputc('\n', fp);
         }
 
@@ -7844,9 +7798,10 @@ wording. */
       for (addr = handled_addr; addr; addr = addr->next)
         {
 	host_item * hu;
-
-	print_dsn_addr_action(fp, addr, US"failed", US"5.0.0");
-
+        fprintf(fp, "Action: failed\n"
+	    "Final-Recipient: rfc822;%s\n"
+	    "Status: 5.0.0\n",
+	    addr->address);
         if ((hu = addr->host_used) && hu->name)
 	  {
 	  fprintf(fp, "Remote-MTA: dns; %s\n", hu->name);
@@ -8002,9 +7957,6 @@ wording. */
         {
         for (addr = handled_addr; addr; addr = addr->next)
           {
-#ifndef DISABLE_EVENT
-          msg_event_raise(US"msg:fail:delivery:bounced", addr);
-#endif
           address_done(addr, logtod);
           child_done(addr, logtod);
           }
@@ -8391,9 +8343,13 @@ else if (addr_defer != (address_item *)(+1))
 
         for ( ; addr_dsndefer; addr_dsndefer = addr_dsndefer->next)
           {
+          if (addr_dsndefer->dsn_orcpt)
+            fprintf(f, "Original-Recipient: %s\n", addr_dsndefer->dsn_orcpt);
 
-	  print_dsn_addr_action(f, addr_dsndefer, US"delayed", US"4.0.0");
-
+          fprintf(f, "Action: delayed\n"
+	      "Final-Recipient: rfc822;%s\n"
+	      "Status: 4.0.0\n",
+	    addr_dsndefer->address);
           if (addr_dsndefer->host_used && addr_dsndefer->host_used->name)
             {
             fprintf(f, "Remote-MTA: dns; %s\n",

@@ -223,7 +223,11 @@ while ((s = string_nextinlist(&text, &sep, big_buffer, big_buffer_size)))
       if (ss[i+1] != '^')
 	ss[i] = 0;
       else
-        if (--len > ++i) memmove(ss + i, ss + i + 1, len - i);
+        {
+        i++;
+        len--;
+        memmove(ss + i, ss + i + 1, len - i);
+        }
 
   /* The first string is attached to the AUTH command; others are sent
   unembellished. */
