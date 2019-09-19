@@ -653,7 +653,9 @@ static var_entry var_table[] = {
   { "received_protocol",   vtype_stringptr,   &received_protocol },
   { "received_time",       vtype_int,         &received_time.tv_sec },
   { "recipient_data",      vtype_stringptr,   &recipient_data },
+  { "recipient_verify_cache",vtype_bool,      &recipient_verify_cache },
   { "recipient_verify_failure",vtype_stringptr,&recipient_verify_failure },
+  { "recipient_verify_message",vtype_stringptr,&recipient_verify_message },
   { "recipients",          vtype_string_func, &fn_recipients },
   { "recipients_count",    vtype_int,         &recipients_count },
 #ifdef WITH_CONTENT_SCAN
@@ -686,7 +688,9 @@ static var_entry var_table[] = {
   { "sender_rate_limit",   vtype_stringptr,   &sender_rate_limit },
   { "sender_rate_period",  vtype_stringptr,   &sender_rate_period },
   { "sender_rcvhost",      vtype_stringptr,   &sender_rcvhost },
+  { "sender_verify_cache", vtype_bool,        &sender_verify_cache },
   { "sender_verify_failure",vtype_stringptr,  &sender_verify_failure },
+  { "sender_verify_message",vtype_stringptr,  &sender_verify_message },
   { "sending_ip_address",  vtype_stringptr,   &sending_ip_address },
   { "sending_port",        vtype_int,         &sending_port },
   { "smtp_active_hostname", vtype_stringptr,  &smtp_active_hostname },
@@ -1845,7 +1849,7 @@ switch (vp->type)
     domain = Ustrrchr(s, '@');
     if (domain == NULL) return s;
     if (domain - s > sizeof(var_buffer) - 1)
-      log_write(0, LOG_MAIN|LOG_PANIC_DIE, "local part longer than " SIZE_T_FMT
+      log_write(0, LOG_MAIN, "local part longer than " SIZE_T_FMT
 	  " in string expansion", sizeof(var_buffer));
     Ustrncpy(var_buffer, s, domain - s);
     var_buffer[domain - s] = 0;
@@ -3972,7 +3976,7 @@ return NULL;
 /* Pull off the leading array or object element, returning
 a copy in an allocated string.  Update the list pointer.
 
-The element may itself be an abject or array.
+The element may itself be an object or array.
 Return NULL when the list is empty.
 */
 
@@ -5861,10 +5865,11 @@ while (*s != 0)
 	      }
 	    while (field_number > 0 && (item = json_nextinlist(&list)))
 	      field_number--;
-	    s = item;
-	    lookup_value = s;
-	    while (*s) s++;
-	    while (--s >= lookup_value && isspace(*s)) *s = '\0';
+	    if ((lookup_value = s = item))
+	      {
+	      while (*s) s++;
+	      while (--s >= lookup_value && isspace(*s)) *s = '\0';
+	      }
 	    }
 	  else
 	    {
@@ -7150,16 +7155,11 @@ while (*s != 0)
         uschar * t = parse_extract_address(sub, &error, &start, &end, &domain,
           FALSE);
         if (t)
-          if (c != EOP_DOMAIN)
-            {
-            if (c == EOP_LOCAL_PART && domain != 0) end = start + domain - 1;
-            yield = string_catn(yield, sub+start, end-start);
-            }
-          else if (domain != 0)
-            {
-            domain += start;
-            yield = string_catn(yield, sub+domain, end-domain);
-            }
+	  yield = c == EOP_DOMAIN
+	    ? string_cat(yield, t + domain)
+	    : c == EOP_LOCAL_PART && domain > 0
+	    ? string_catn(yield, t, domain - 1 )
+	    : string_cat(yield, t);
         continue;
         }
 
@@ -7183,7 +7183,7 @@ while (*s != 0)
 
         for (;;)
           {
-          uschar *p = parse_find_address_end(sub, FALSE);
+          uschar * p = parse_find_address_end(sub, FALSE);
           uschar saveend = *p;
           *p = '\0';
           address = parse_extract_address(sub, &error, &start, &end, &domain,
@@ -7196,7 +7196,7 @@ while (*s != 0)
           list, add in a space if the new address begins with the separator
           character, or is an empty string. */
 
-          if (address != NULL)
+          if (address)
             {
             if (yield->ptr != save_ptr && address[0] == *outsep)
               yield = string_catn(yield, US" ", 1);

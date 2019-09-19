@@ -460,6 +460,8 @@ uschar *acl_not_smtp_mime      = NULL;
 uschar *acl_not_smtp_start     = NULL;
 uschar *acl_removed_headers    = NULL;
 uschar *acl_smtp_auth          = NULL;
+uschar *acl_smtp_auth_accept   = NULL;
+uschar *acl_smtp_auth_fail     = NULL;
 uschar *acl_smtp_connect       = NULL;
 uschar *acl_smtp_data          = NULL;
 #ifndef DISABLE_PRDR
@@ -906,7 +908,7 @@ const uschar *event_name         = NULL;	/* event name variable */
 
 
 gid_t   exim_gid               = EXIM_GID;
-uschar *exim_path              = US BIN_DIRECTORY "/exim"
+uschar *exim_path              = US BIN_DIRECTORY "/exim4"
                         "\0<---------------Space to patch exim_path->";
 uid_t   exim_uid               = EXIM_UID;
 int     expand_level	       = 0;		/* Nesting depth, indent for debug */
@@ -972,6 +974,8 @@ uschar *helo_accept_junk_hosts = NULL;
 uschar *helo_allow_chars       = US"";
 uschar *helo_lookup_domains    = US"@ : @[]";
 uschar *helo_try_verify_hosts  = NULL;
+uschar *xclient_allow_hosts    = NULL;
+/* Allow XCLIENT command for specified hosts */
 uschar *helo_verify_hosts      = NULL;
 const uschar *hex_digits       = CUS"0123456789abcdef";
 uschar *hold_domains           = NULL;
@@ -1265,7 +1269,9 @@ struct timeval received_time   = { 0, 0 };
 struct timeval received_time_taken = { 0, 0 };
 uschar *recipient_data         = NULL;
 uschar *recipient_unqualified_hosts = NULL;
+BOOL    recipient_verify_cache = FALSE;
 uschar *recipient_verify_failure = NULL;
+uschar *recipient_verify_message = NULL;
 int     recipients_count       = 0;
 recipient_item  *recipients_list = NULL;
 int     recipients_list_max    = 0;
@@ -1422,7 +1428,9 @@ uschar *sender_rate_limit      = NULL;
 uschar *sender_rate_period     = NULL;
 uschar *sender_rcvhost         = NULL;
 uschar *sender_unqualified_hosts = NULL;
+BOOL    sender_verify_cache = FALSE;
 uschar *sender_verify_failure = NULL;
+uschar *sender_verify_message = NULL;
 address_item *sender_verified_list  = NULL;
 address_item *sender_verified_failed = NULL;
 int     sender_verified_rc     = -1;
