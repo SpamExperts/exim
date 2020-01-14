@@ -1314,7 +1314,7 @@ void * reset_point;     /* released afterwards.  */
 /* Message failures for which we will send a DSN get their event raised
 later so avoid doing it here. */
 
-if (  !addr->prop.ignore_error
+if (  !testflag(addr, af_ignore_error)
    && !(addr->dsn_flags & (rf_dsnflags & ~rf_notify_failure))
    )
   msg_event_raise(US"msg:fail:delivery", addr);
