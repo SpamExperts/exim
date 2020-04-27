@@ -630,7 +630,7 @@ FIXED_NEVER_USERS=root
 #
 # By default, no macros are whitelisted for -D usage.
 
-WHITELIST_D_MACROS=RELEASE_MESSAGE
+WHITELIST_D_MACROS=RELEASE_MESSAGE:IDENTITY_LOCAL_PART:IDENTITY_DOMAIN
 
 #------------------------------------------------------------------------------
 # Exim has support for the AUTH (authentication) extension of the SMTP
