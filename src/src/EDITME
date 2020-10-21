@@ -631,6 +631,7 @@ FIXED_NEVER_USERS=root
 # By default, no macros are whitelisted for -D usage.
 
 # WHITELIST_D_MACROS=TLS:SPOOL
+WHITELIST_D_MACROS=AUTH_DOMAIN:AUTH_USERNAME
 
 #------------------------------------------------------------------------------
 # Exim has support for the AUTH (authentication) extension of the SMTP
