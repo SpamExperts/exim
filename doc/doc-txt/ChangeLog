@@ -11,6 +11,12 @@ JH/42 Bug 2545: Fix CHUNKING for all RCPT commands rejected.  Previously we
       carried on and emitted a BDAT command, even when PIPELINING was not
       active.
 
+JH/49 Bug 2710: when using SOCKS for additional messages after the first (a
+      "continued connection") make the $proxy_* variables available.  Previously
+      the information was not passed across the exec() call for subsequent
+      transport executions.  This also mean that the log lines for the
+      messages can show the proxy information.
+
 
 Exim version 4.92.2
 -------------------

@@ -1864,7 +1864,7 @@ void
 transport_do_pass_socket(const uschar *transport_name, const uschar *hostname,
   const uschar *hostaddress, uschar *id, int socket_fd)
 {
-int i = 20;
+int i = 27;
 const uschar **argv;
 
 /* Set up the calling arguments; use the standard function for the basics,
@@ -1896,6 +1896,15 @@ if (queue_run_pid != (pid_t)0)
   argv[i++] = string_sprintf("%d", queue_run_pid);
   argv[i++] = string_sprintf("%d", queue_run_pipe);
   }
+#ifdef SUPPORT_SOCKS
+if (proxy_session){
+    argv[i++] = US"-MCp";
+    argv[i++] = proxy_local_address;
+    argv[i++] = string_sprintf("%d", proxy_local_port);
+    argv[i++] = proxy_external_address;
+    argv[i++] = string_sprintf("%d", proxy_external_port);
+}
+#endif
 
 argv[i++] = US"-MC";
 argv[i++] = US transport_name;
