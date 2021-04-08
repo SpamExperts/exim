@@ -2685,13 +2685,17 @@ for (i = 1; i < argc; i++)
 	case 'p': proxy_session = TRUE;
 		  if (++i < argc)
 		    {
-		    proxy_local_address = string_copy_taint(argv[i], TRUE);
+		      // Official commit: https://github.com/Exim/exim/commit/2081aac24b67f3f3f34389aadc06354abcad0cad
+		      // To backport string_copy_taint a loat of changes have to be made
+		      // Logic: trying to copy the value from argv at index i with string_copy
+		      // For future reader: this might be a bug
+		      proxy_local_address = string_copy(argv[i]);
 		    if (++i < argc)
 		      {
 		      proxy_local_port = Uatoi(argv[i]);
 		      if (++i < argc)
 			{
-			proxy_external_address = string_copy_taint(argv[i], TRUE);
+			proxy_external_address = string_copy(argv[i]); //string_copy_taint(argv[i], TRUE);
 			if (++i < argc)
 			  {
 			  proxy_external_port = Uatoi(argv[i]);
