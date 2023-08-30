@@ -5,7 +5,6 @@ This is a fork of the [Exim](https://exim.org) repository, used by N-able for Sp
 ## Maintainers
 
  * Dreas van Donselaar
- * Tony Meyer, [@tonyandrewmeyer](https://github.com/tonyandrewmeyer), tony@spamexperts.com, `8C18 54E2 D857 63E1 1506  C6A7 F9B9 322B 826F D935`
  * Mikhael Anisimov
  * Alexandru Chirila
 
