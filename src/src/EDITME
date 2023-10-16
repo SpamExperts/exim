@@ -258,7 +258,7 @@ SUPPORT_MAILDIR=yes
 # you perform upgrades and revert them. You should consider the benefit of
 # embedding the Exim version number into LOOKUP_MODULE_DIR, so that you can
 # maintain two concurrent sets of modules.
-# 
+#
 # *BEWARE*: ability to modify the files in LOOKUP_MODULE_DIR is equivalent to
 # the ability to modify the Exim binary, which is often setuid root!  The Exim
 # developers only intend this functionality be used by OS software packagers
@@ -754,6 +754,7 @@ SUPPORT_TLS=yes
 
 # Uncomment one of these settings if you are using OpenSSL; pkg-config vs not
 # USE_OPENSSL_PC=openssl
+USE_OPENSSL=yes
 TLS_LIBS=-lssl -lcrypto
 
 # Uncomment the first and either the second or the third of these if you
