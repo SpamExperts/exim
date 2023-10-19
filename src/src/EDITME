@@ -214,7 +214,7 @@ USE_OPENSSL=yes
 # Uncomment one of these settings if you are using OpenSSL; pkg-config vs not
 # and an optional location.
 # USE_OPENSSL_PC=openssl
-# TLS_LIBS=-lssl -lcrypto
+TLS_LIBS=-lssl -lcrypto
 # TLS_LIBS=-L/usr/local/openssl/lib -lssl -lcrypto
 
 # Uncomment this if you are using GnuTLS
