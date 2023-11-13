@@ -5393,6 +5393,9 @@ Returns:       nothing
 static void
 print_dsn_diagnostic_code(const address_item *addr, FILE *f)
 {
+
+if (addr == NULL) return;
+
 uschar * s = testflag(addr, af_pass_message) ? addr->message : NULL;
 unsigned cnt;
 
