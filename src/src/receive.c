@@ -2312,7 +2312,7 @@ for (h = header_list->next; h; h = h->next)
       if (!resents_exist || is_resent)
 	{
 	from_header = h;
-        DEBUG(D_receive) debug_printf("FROM HEADER htype from %s\n", &from_header->text);
+        DEBUG(D_receive) debug_printf("FROM HEADER htype from %s\n", from_header->text);
 	if (!smtp_input)
 	  {
 	  int len;
@@ -2326,14 +2326,14 @@ for (h = header_list->next; h; h = h->next)
 	    header_add(htype_from, "%s: %s <%s@%s>\n", name, originator_name,
 	      originator_login, qualify_domain_sender);
 	    from_header = header_last;
-            DEBUG(D_receive) debug_printf("FROM HEADER htype from resent if %s\n", &from_header->text);
+            DEBUG(D_receive) debug_printf("FROM HEADER htype from resent if %s\n", from_header->text);
 	    h->type = htype_old;
 	    DEBUG(D_receive|D_rewrite)
 	      debug_printf("rewrote \"%s:\" header using gecos\n", name);
 	   }
 	  }
 	}
-      DEBUG(D_receive) debug_printf("FROM HEADER htype from %s\n", &from_header->text);
+      DEBUG(D_receive) debug_printf("FROM HEADER htype from %s\n", from_header->text);
       break;
 
       /* Identify the Message-id: header for generating "in-reply-to" in the
@@ -2820,7 +2820,7 @@ if (  !from_header
           local_part_quote(authenticated_id), submission_domain, fromend);
 
       from_header = header_last;    /* To get it checked for Sender: */
-      DEBUG(D_receive) debug_printf("FROM HEADER No sender address case %s\n", &from_header->text);
+      DEBUG(D_receive) debug_printf("FROM HEADER No sender address case %s\n", from_header->text);
       }
     }
 
@@ -2837,7 +2837,7 @@ if (  !from_header
       *oname ? ">" : "");
 
     from_header = header_last;    /* To get it checked for Sender: */
-    DEBUG(D_receive) debug_printf("with sender address case %s\n", &from_header->text);
+    DEBUG(D_receive) debug_printf("FROM HEADER with sender address case %s\n", from_header->text);
     }
   }
 
@@ -3475,7 +3475,7 @@ else
 #endif /* WITH_CONTENT_SCAN */
 
 #ifdef EXPERIMENTAL_DMARC
-    DEBUG(D_receive) debug_printf("FROM HEADER store dmarc data %s\n", &from_header->text);
+    DEBUG(D_receive) debug_printf("FROM HEADER store dmarc data %s\n", from_header->text);
     dmarc_up = dmarc_store_data(from_header);
 #endif /* EXPERIMENTAL_DMARC */
 
