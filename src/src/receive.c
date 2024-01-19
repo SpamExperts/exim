@@ -2325,7 +2325,7 @@ for (h = header_list->next; h; h = h->next)
 	    header_add(htype_from, "%s: %s <%s@%s>\n", name, originator_name,
 	      originator_login, qualify_domain_sender);
 	    from_header = header_last;
-            debug_printf("htype_from case for %s\n", from_header);
+            DEBUG(D_receive) debug_printf("htype_from case for %s\n", from_header);
 	    h->type = htype_old;
 	    DEBUG(D_receive|D_rewrite)
 	      debug_printf("rewrote \"%s:\" header using gecos\n", name);
@@ -2818,7 +2818,7 @@ if (  !from_header
           local_part_quote(authenticated_id), submission_domain, fromend);
 
       from_header = header_last;    /* To get it checked for Sender: */
-      debug_printf("No sender address case %s\n", from_header);
+      DEBUG(D_receive) debug_printf("No sender address case %s\n", from_header);
       }
     }
 
@@ -2835,7 +2835,7 @@ if (  !from_header
       *oname ? ">" : "");
 
     from_header = header_last;    /* To get it checked for Sender: */
-    debug_printf("with sender address case %s\n", from_header);
+    DEBUG(D_receive) debug_printf("with sender address case %s\n", from_header);
     }
   }
 
@@ -3473,6 +3473,7 @@ else
 #endif /* WITH_CONTENT_SCAN */
 
 #ifdef EXPERIMENTAL_DMARC
+    DEBUG(D_receive) debug_printf("storing dkarc data %s\n", from_header);
     dmarc_up = dmarc_store_data(from_header);
 #endif /* EXPERIMENTAL_DMARC */
 
