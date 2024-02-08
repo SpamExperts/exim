@@ -1715,7 +1715,9 @@ header_line *subject_header = NULL;
 header_line *msgid_header = NULL;
 header_line *received_header;
 BOOL msgid_header_newly_created = FALSE;
-
+#ifdef SUPPORT_DMARC
+int dmarc_up = 0;
+#endif
 /* Variables for use when building the Received: header. */
 
 uschar *timestamp;
@@ -1784,7 +1786,7 @@ if (smtp_input && !smtp_batched_input && !f.dkim_disable_verify)
 #endif
 
 #ifdef SUPPORT_DMARC
-if (sender_host_address) dmarc_init();	/* initialize libopendmarc */
+dmarc_up = dmarc_init();	/* initialize libopendmarc */
 #endif
 
 /* Remember the time of reception. Exim uses time+pid for uniqueness of message
@@ -3521,7 +3523,7 @@ else
 #endif /* WITH_CONTENT_SCAN */
 
 #ifdef SUPPORT_DMARC
-    dmarc_store_data(from_header);
+    dmarc_up = dmarc_store_data(from_header);
 #endif
 
 #ifndef DISABLE_PRDR
