@@ -1733,9 +1733,7 @@ header_line *subject_header = NULL;
 header_line *msgid_header = NULL;
 header_line *received_header;
 BOOL msgid_header_newly_created = FALSE;
-#ifdef SUPPORT_DMARC
-int dmarc_up = 0;
-#endif
+
 /* Variables for use when building the Received: header. */
 
 uschar *timestamp;
@@ -1809,7 +1807,7 @@ if (smtp_input && !smtp_batched_input && !f.dkim_disable_verify)
 #endif
 
 #ifdef SUPPORT_DMARC
-dmarc_up = dmarc_init();	/* initialize libopendmarc */
+if (sender_host_address) dmarc_init();	/* initialize libopendmarc */
 #endif
 
 /* In SMTP sessions we may receive several messages in one connection. Before
@@ -3579,7 +3577,7 @@ else
 #endif /* WITH_CONTENT_SCAN */
 
 #ifdef SUPPORT_DMARC
-    dmarc_up = dmarc_store_data(from_header);
+    dmarc_store_data(from_header);
 #endif
 
 #ifndef DISABLE_PRDR
