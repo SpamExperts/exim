@@ -215,13 +215,13 @@ dns_answer * dnsa = store_get_dns_answer();
 dns_scan dnss;
 int rc = dns_lookup(dnsa, string_sprintf("_dmarc.%s", dom), T_TXT, NULL);
 
-if (rc == DNS_SUCCEED)
-  for (dns_record * rr = dns_next_rr(dnsa, &dnss, RESET_ANSWERS); rr;
-       rr = dns_next_rr(dnsa, &dnss, RESET_NEXT))
-    if (rr->type == T_TXT && rr->size > 3)
-      return string_copyn(US rr->data, rr->size);
-return NULL;
-}
+//if (rc == DNS_SUCCEED)
+//  for (dns_record * rr = dns_next_rr(dnsa, &dnss, RESET_ANSWERS); rr;
+//       rr = dns_next_rr(dnsa, &dnss, RESET_NEXT))
+//    if (rr->type == T_TXT && rr->size > 3)
+//      return string_copyn(US rr->data, rr->size);
+//return NULL;
+//}
 
 
 static int
@@ -325,7 +325,7 @@ int sr, origin;             /* used in SPF section */
 int dmarc_spf_result  = 0;  /* stores spf into dmarc conn ctx */
 int tmp_ans, c;
 pdkim_signature * sig = dkim_signatures;
-uschar * rr;
+//uschar * rr;
 BOOL has_dmarc_record = TRUE;
 u_char **ruf; /* forensic report addressees, if called for */
 
@@ -477,9 +477,10 @@ if (!dmarc_abort && !sender_host_authenticated)
   our dns access path is used for debug tracing and for the testsuite
   diversion. */
 
-  libdm_status = (rr = dmarc_dns_lookup(header_from_sender))
-    ? opendmarc_policy_store_dmarc(dmarc_pctx, rr, header_from_sender, NULL)
-    : DMARC_DNS_ERROR_NO_RECORD;
+//  libdm_status = (rr = dmarc_dns_lookup(header_from_sender))
+//    ? opendmarc_policy_store_dmarc(dmarc_pctx, rr, header_from_sender, NULL)
+//    : DMARC_DNS_ERROR_NO_RECORD;
+  libdm_status = opendmarc_policy_query_dmarc(dmarc_pctx, US"");
   switch (libdm_status)
     {
     case DMARC_DNS_ERROR_NXDOMAIN:
@@ -519,11 +520,17 @@ if (!dmarc_abort && !sender_host_authenticated)
   /* Can't use exim's string manipulation functions so allocate memory
   for libopendmarc using its max hostname length definition. */
 
-  dmarc_domain = store_get(DMARC_MAXHOSTNAMELEN, TRUE);
+//  dmarc_domain = store_get(DMARC_MAXHOSTNAMELEN, TRUE);
+//  libdm_status = opendmarc_policy_fetch_utilized_domain(dmarc_pctx,
+//    dmarc_domain, DMARC_MAXHOSTNAMELEN-1);
+//  store_release_above(dmarc_domain + Ustrlen(dmarc_domain)+1);
+//  dmarc_used_domain = dmarc_domain;
+
+  dmarc_domain = US calloc(DMARC_MAXHOSTNAMELEN, sizeof(uschar));
   libdm_status = opendmarc_policy_fetch_utilized_domain(dmarc_pctx,
     dmarc_domain, DMARC_MAXHOSTNAMELEN-1);
-  store_release_above(dmarc_domain + Ustrlen(dmarc_domain)+1);
-  dmarc_used_domain = dmarc_domain;
+  dmarc_used_domain = string_copy(dmarc_domain);
+  free(dmarc_domain);
 
   if (libdm_status != DMARC_PARSE_OKAY)
     log_write(0, LOG_MAIN|LOG_PANIC,
