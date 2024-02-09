@@ -208,12 +208,12 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
 
 /* Look up a DNS dmarc record for the given domain.  Return it or NULL */
 
-static uschar *
-dmarc_dns_lookup(uschar * dom)
-{
-dns_answer * dnsa = store_get_dns_answer();
-dns_scan dnss;
-int rc = dns_lookup(dnsa, string_sprintf("_dmarc.%s", dom), T_TXT, NULL);
+//static uschar *
+//dmarc_dns_lookup(uschar * dom)
+//{
+//dns_answer * dnsa = store_get_dns_answer();
+//dns_scan dnss;
+//int rc = dns_lookup(dnsa, string_sprintf("_dmarc.%s", dom), T_TXT, NULL);
 
 //if (rc == DNS_SUCCEED)
 //  for (dns_record * rr = dns_next_rr(dnsa, &dnss, RESET_ANSWERS); rr;
