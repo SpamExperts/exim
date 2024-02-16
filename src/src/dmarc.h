@@ -58,3 +58,4 @@ uschar *dmarc_exim_expand_defaults(int);
 #define ARES_RESULT_DISCARD 12
 
 #endif /* SUPPORT_DMARC */
+
