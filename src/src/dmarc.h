@@ -3,8 +3,10 @@
 *************************************************/
 
 /* Experimental DMARC support.
+   Copyright (c) The Exim Maintainers 2021 - 2023
    Copyright (c) Todd Lyons <tlyons@exim.org> 2012 - 2014
    License: GPL */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Portions Copyright (c) 2012, 2013, The Trusted Domain Project;
    All rights reserved, licensed for use per LICENSE.opendmarc. */
@@ -17,15 +19,13 @@
 # endif /* SUPPORT_SPF */
 
 /* prototypes */
-int dmarc_init();
+gstring * dmarc_version_report(gstring *);
+int dmarc_init(void);
 int dmarc_store_data(header_line *);
-int dmarc_process();
+int dmarc_process(void);
 uschar *dmarc_exim_expand_query(int);
 uschar *dmarc_exim_expand_defaults(int);
-uschar *dmarc_auth_results_header(header_line *,uschar *);
-static int dmarc_write_history_file();
 
-#define DMARC_AR_HEADER        US"Authentication-Results:"
 #define DMARC_VERIFY_STATUS    1
 
 #define DMARC_HIST_OK          1
@@ -57,5 +57,9 @@ static int dmarc_write_history_file();
 #define ARES_RESULT_SIGNED  10
 #define ARES_RESULT_UNKNOWN 11
 #define ARES_RESULT_DISCARD 12
+
+#define	DMARC_ARC_POLICY_RESULT_PASS	0
+#define	DMARC_ARC_POLICY_RESULT_UNUSED	1
+#define	DMARC_ARC_POLICY_RESULT_FAIL	2
 
 #endif /* SUPPORT_DMARC */
