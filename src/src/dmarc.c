@@ -205,6 +205,7 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
     }
 }
 
+
 /* Look up a DNS dmarc record for the given domain.  Return it or NULL */
 
 static uschar *
@@ -221,6 +222,7 @@ if (rc == DNS_SUCCEED)
       return string_copyn(US rr->data, rr->size);
 return NULL;
 }
+
 
 static int
 dmarc_write_history_file()
