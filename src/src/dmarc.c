@@ -158,7 +158,6 @@ return OK;
 static void
 dmarc_send_forensic_report(u_char **ruf)
 {
-int   c;
 uschar *recipient, *save_sender;
 BOOL  send_status = FALSE;
 error_block *eblock = NULL;
@@ -185,7 +184,7 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
 		     da == DMARC_POLICY_DKIM_ALIGNMENT_PASS ? US"yes" : US"no");
     eblock = add_to_eblock(eblock, US"DMARC Results", dmarc_status_text);
 
-    for (c = 0; ruf[c]; c++)
+    for (int c = 0; ruf[c]; c++)
       {
       recipient = string_copylc(ruf[c]);
       if (Ustrncmp(recipient, "mailto:",7))
@@ -206,6 +205,22 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
     }
 }
 
+/* Look up a DNS dmarc record for the given domain.  Return it or NULL */
+
+static uschar *
+dmarc_dns_lookup(uschar * dom)
+{
+dns_answer * dnsa = store_get_dns_answer();
+dns_scan dnss;
+int rc = dns_lookup(dnsa, string_sprintf("_dmarc.%s", dom), T_TXT, NULL);
+
+if (rc == DNS_SUCCEED)
+  for (dns_record * rr = dns_next_rr(dnsa, &dnss, RESET_ANSWERS); rr;
+       rr = dns_next_rr(dnsa, &dnss, RESET_NEXT))
+    if (rr->type == T_TXT && rr->size > 3)
+      return string_copyn(US rr->data, rr->size);
+return NULL;
+}
 
 static int
 dmarc_write_history_file()
