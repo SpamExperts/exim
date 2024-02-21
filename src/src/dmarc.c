@@ -171,6 +171,7 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
    || dmarc_policy == DMARC_POLICY_QUARANTINE && action == DMARC_RESULT_QUARANTINE
    || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_REJECT
    || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_QUARANTINE
+   || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_ACCEPT
    )
   if (ruf)
     {
@@ -470,15 +471,7 @@ if (!dmarc_abort && !sender_host_authenticated)
 					 sig->domain, dkim_ares_result);
     sig = sig->next;
     }
-
-  /* Look up DMARC policy record in DNS.  We do this explicitly, rather than
-  letting the dmarc library do it with opendmarc_policy_query_dmarc(), so that
-  our dns access path is used for debug tracing and for the testsuite
-  diversion. */
-
-  libdm_status = (rr = dmarc_dns_lookup(header_from_sender))
-    ? opendmarc_policy_store_dmarc(dmarc_pctx, rr, header_from_sender, NULL)
-    : DMARC_DNS_ERROR_NO_RECORD;
+  libdm_status = opendmarc_policy_query_dmarc(dmarc_pctx, US"");
   switch (libdm_status)
     {
     case DMARC_DNS_ERROR_NXDOMAIN:
