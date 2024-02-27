@@ -828,100 +828,109 @@ July 2003: Bare CRs cause trouble. We now treat them as line terminators as
 well, so that there are no CRs in spooled messages. However, the message
 terminating dot is not recognized between two bare CRs.
 
+Dec 2023: getting a site to send a body including an "LF . LF" sequence
+followed by SMTP commands is a possible "smtp smuggling" attack.  If
+the first (header) line for the message has a proper CRLF then enforce
+that for the body: convert bare LF to a space.
+
 Arguments:
-  fout      a FILE to which to write the message; NULL if skipping
+  fout		a FILE to which to write the message; NULL if skipping
+  strict_crlf	require full CRLF sequence as a line ending
 
 Returns:    One of the END_xxx values indicating why it stopped reading
 */
 
 static int
-read_message_data_smtp(FILE *fout)
+read_message_data_smtp(FILE * fout, BOOL strict_crlf)
 {
-int ch_state = 0;
-int ch;
-int linelength = 0;
+enum { s_linestart, s_normal, s_had_cr, s_had_nl_dot, s_had_dot_cr } ch_state =
+	      s_linestart;
+int linelength = 0, ch;
 
 while ((ch = (receive_getc)(GETC_BUFFER_UNLIMITED)) != EOF)
   {
   if (ch == 0) body_zerocount++;
   switch (ch_state)
     {
-    case 0:                             /* After LF or CRLF */
-    if (ch == '.')
-      {
-      ch_state = 3;
-      continue;                         /* Don't ever write . after LF */
-      }
-    ch_state = 1;
+    case s_linestart:			/* After LF or CRLF */
+      if (ch == '.')
+	{
+	ch_state = s_had_nl_dot;
+	continue;			/* Don't ever write . after LF */
+	}
+      ch_state = s_normal;
 
-    /* Else fall through to handle as normal uschar. */
+      /* Else fall through to handle as normal uschar. */
+    case s_normal:			/* Normal state */
+      if (ch == '\r')
+	{
+	ch_state = s_had_cr;
+	continue;			/* Don't write the CR */
+	}
+      if (ch == '\n')			/* Bare LF at end of line */
+	if (strict_crlf)
+	  ch = ' ';			/* replace LF with space */
+	else
+	  {				/* treat as line ending */
+	  ch_state = s_linestart;
+	  body_linecount++;
+	  if (linelength > max_received_linelength)
+	    max_received_linelength = linelength;
+	  linelength = -1;
+	  }
+      break;
 
-    case 1:                             /* Normal state */
-    if (ch == '\n')
-      {
-      ch_state = 0;
-      body_linecount++;
+    case s_had_cr:			/* After (unwritten) CR */
+      body_linecount++;			/* Any char ends line */
       if (linelength > max_received_linelength)
         max_received_linelength = linelength;
-      linelength = -1;
-      }
-    else if (ch == '\r')
-      {
-      ch_state = 2;
-      continue;
-      }
-    break;
-
-    case 2:                             /* After (unwritten) CR */
-    body_linecount++;
-    if (linelength > max_received_linelength)
-      max_received_linelength = linelength;
-    linelength = -1;
-    if (ch == '\n')
-      {
-      ch_state = 0;
-      }
-    else
-      {
-      message_size++;
-      if (fout != NULL && fputc('\n', fout) == EOF) return END_WERROR;
+      if (ch == '\n')			/* proper CRLF */
+	ch_state = s_linestart;
+      else
+	{
+	message_size++;		/* convert the dropped CR to a stored NL */
+	if (fout && fputc('\n', fout) == EOF) return END_WERROR;
+	cutthrough_data_put_nl();
+	if (ch == '\r')			/* CR; do not write */
+	  continue;
+	ch_state = s_normal;		/* not LF or CR; process as standard */
+	}
+      break;
+    case s_had_nl_dot:			/* After [CR] LF . */
+      if (ch == '\n')			/* [CR] LF . LF */
+	if (strict_crlf)
+	  ch = ' ';			/* replace LF with space */
+	else
+	  return END_DOT;
+      else if (ch == '\r')		/* [CR] LF . CR */
+	{
+	ch_state = s_had_dot_cr;
+	continue;			/* Don't write the CR */
+	}
+      /* The dot was removed on reaching s_had_nl_dot. For a doubled dot, here,
+      reinstate it to cutthrough. The current ch, dot or not, is passed both to
+      cutthrough and to file below. */
+      else if (ch == '.')
+	{
+	uschar c = ch;
+	cutthrough_data_puts(&c, 1);
+	}
+      ch_state = s_normal;
+      break;
+    case s_had_dot_cr:			/* After [CR] LF . CR */
+      if (ch == '\n')
+	return END_DOT;			/* Preferred termination */
+      message_size++;		/* convert the dropped CR to a stored NL */
+      body_linecount++;
+      if (fout && fputc('\n', fout) == EOF) return END_WERROR;
       cutthrough_data_put_nl();
-      if (ch != '\r') ch_state = 1; else continue;
-      }
-    break;
-
-    case 3:                             /* After [CR] LF . */
-    if (ch == '\n')
-      return END_DOT;
-    if (ch == '\r')
-      {
-      ch_state = 4;
-      continue;
-      }
-    /* The dot was removed at state 3. For a doubled dot, here, reinstate
-    it to cutthrough. The current ch, dot or not, is passed both to cutthrough
-    and to file below. */
-    if (ch == '.')
-      {
-      uschar c= ch;
-      cutthrough_data_puts(&c, 1);
-      }
-    ch_state = 1;
-    break;
-
-    case 4:                             /* After [CR] LF . CR */
-    if (ch == '\n') return END_DOT;
-    message_size++;
-    body_linecount++;
-    if (fout != NULL && fputc('\n', fout) == EOF) return END_WERROR;
-    cutthrough_data_put_nl();
-    if (ch == '\r')
-      {
-      ch_state = 2;
-      continue;
-      }
-    ch_state = 1;
-    break;
+      if (ch == '\r')
+	{
+	ch_state = s_had_cr;
+	continue;			/* CR; do not write */
+	}
+      ch_state = s_normal;
+      break;
     }
 
   /* Add the character to the spool file, unless skipping; then loop for the
@@ -1137,7 +1146,7 @@ receive_swallow_smtp(void)
 {
 if (message_ended >= END_NOTENDED)
   message_ended = chunking_state <= CHUNKING_OFFERED
-     ? read_message_data_smtp(NULL)
+     ? read_message_data_smtp(NULL, FALSE)
      : read_message_bdat_smtp_wire(NULL);
 }
 
@@ -1949,8 +1958,10 @@ for (;;)
 
   if (ch == '\n')
     {
-    if (first_line_ended_crlf == TRUE_UNSET) first_line_ended_crlf = FALSE;
-      else if (first_line_ended_crlf) receive_ungetc(' ');
+    if (first_line_ended_crlf == TRUE_UNSET)
+      first_line_ended_crlf = FALSE;
+    else if (first_line_ended_crlf)
+      receive_ungetc(' ');
     goto EOL;
     }
 
@@ -1965,8 +1976,13 @@ for (;;)
 
   if (f.dot_ends && ptr == 0 && ch == '.')
     {
+    /* leading dot while in headers-read mode */
     ch = (receive_getc)(GETC_BUFFER_UNLIMITED);
-    if (ch == '\r')
+    if (ch == '\n' && first_line_ended_crlf == TRUE /* and not TRUE_UNSET */ )
+    		/* dot, LF  but we are in CRLF mode.  Attack? */
+      ch = ' ';	/* replace the LF with a space */
+
+    else if (ch == '\r')
       {
       ch = (receive_getc)(GETC_BUFFER_UNLIMITED);
       if (ch != '\n')
@@ -2002,7 +2018,8 @@ for (;;)
     ch = (receive_getc)(GETC_BUFFER_UNLIMITED);
     if (ch == '\n')
       {
-      if (first_line_ended_crlf == TRUE_UNSET) first_line_ended_crlf = TRUE;
+      if (first_line_ended_crlf == TRUE_UNSET)
+	first_line_ended_crlf = TRUE;
       goto EOL;
       }
 
@@ -3151,7 +3168,7 @@ if (cutthrough.cctx.sock >= 0 && cutthrough.delivery)
 
 
 /* Open a new spool file for the data portion of the message. We need
-to access it both via a file descriptor and a stream. Try to make the
+to access it both via a file descriptor and a stdio stream. Try to make the
 directory if it isn't there. */
 
 spool_name = spool_fname(US"input", message_subdir, message_id, US"-D");
@@ -3220,7 +3237,7 @@ if (!ferror(spool_data_file) && !(receive_feof)() && message_ended != END_DOT)
   if (smtp_input)
     {
     message_ended = chunking_state <= CHUNKING_OFFERED
-      ? read_message_data_smtp(spool_data_file)
+      ? read_message_data_smtp(spool_data_file, first_line_ended_crlf)
       : spool_wireformat
       ? read_message_bdat_smtp_wire(spool_data_file)
       : read_message_bdat_smtp(spool_data_file);
