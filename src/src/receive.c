@@ -1681,6 +1681,7 @@ BOOL date_header_exists = FALSE;
 /* Pointers to receive the addresses of headers whose contents we need. */
 
 header_line *from_header = NULL;
+header_line *from_header_for_dmarc = NULL;
 header_line *subject_header = NULL;
 header_line *msgid_header = NULL;
 header_line *received_header;
@@ -2309,6 +2310,10 @@ for (h = header_list->next; h; h = h->next)
 
     case htype_from:
       h->type = htype_from;
+      if (!is_resent && !from_header_for_dmarc)
+      {
+        from_header_for_dmarc = h;
+      }
       if (!resents_exist || is_resent)
 	{
 	from_header = h;
@@ -3470,7 +3475,7 @@ else
 #endif /* WITH_CONTENT_SCAN */
 
 #ifdef EXPERIMENTAL_DMARC
-    dmarc_up = dmarc_store_data(from_header);
+    dmarc_up = dmarc_store_data(from_header_for_dmarc);
 #endif /* EXPERIMENTAL_DMARC */
 
 #ifndef DISABLE_PRDR
