@@ -5715,12 +5715,12 @@ while (done <= 0)
 	}
 
       if (chunking_state > CHUNKING_OFFERED)
-	rc = OK;			/* No predata ACL or go-ahead output for BDAT */
+	rc = OK;	/* There is no predata ACL or go-ahead output for BDAT */
       else
 	{
-	/* If there is an ACL, re-check the synchronization afterwards, since the
-	ACL may have delayed.  To handle cutthrough delivery enforce a dummy call
-	to get the DATA command sent. */
+	/* If there is a predata-ACL, re-check the synchronization afterwards,
+	since the ACL may have delayed.  To handle cutthrough delivery enforce a
+	dummy call to get the DATA command sent. */
 
 	if (acl_smtp_predata == NULL && cutthrough.cctx.sock < 0)
 	  rc = OK;
