@@ -741,7 +741,6 @@ tls_retry_connection:
       goto no_conn;
       }
 
-
     /* If we needed to authenticate, smtp_setup_conn() did that.  Copy
     the AUTH info for logging */
 
