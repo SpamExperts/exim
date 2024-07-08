@@ -747,7 +747,7 @@ TRUSTED_CONFIG_LIST=/var/lib/exim4/trusted_configs
 #
 # By default, no macros are whitelisted for -D usage.
 
-# WHITELIST_D_MACROS=TLS:SPOOL
+WHITELIST_D_MACROS=RELEASE_MESSAGE:AUTH_USERNAME:AUTH_DOMAIN
 
 #------------------------------------------------------------------------------
 # Exim has support for the AUTH (authentication) extension of the SMTP
