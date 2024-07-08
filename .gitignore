@@ -7,3 +7,4 @@ exim-*
 *.orig
 *.rej
 .gdb_history
+.idea
