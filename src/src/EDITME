@@ -487,7 +487,7 @@ SUPPORT_DANE=yes
 # You do not need to use this for any lookup information added via pkg-config.
 
 # LOOKUP_INCLUDE=-I /usr/local/ldap/include -I /usr/local/mysql/include -I /usr/local/pgsql/include
-# LOOKUP_LIBS=-L/usr/local/lib -lldap -llber -lmysqlclient -lpq -lgds -lsqlite3
+LOOKUP_LIBS=-L/usr/include -ljansson
 
 
 #------------------------------------------------------------------------------
