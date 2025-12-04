@@ -5,6 +5,400 @@ options, and new features, see the NewStuff file next to this ChangeLog.
 
 Since Exim version 4.94
 -----------------------
+This is a security release.
+
+JH/01 Bug 2999: Fix a possible OOB write in the external authenticator, which
+      could be triggered by externally-supplied input.  Found by Trend Micro.
+      CVE-2023-42115
+
+JH/02 Bug 3000: Fix a possible OOB write in the SPA authenticator, which could
+      be triggered by externally-controlled input.  Found by Trend Micro.
+      CVE-2023-42116
+
+JH/03 Bug 3001: Fix a possible OOB read in the SPA authenticator, which could
+      be triggered by externally-controlled input.  Found by Trend Micro.
+      CVE-2023-42114
+JH/04 Bug 3039: Fix handling of of an empty log_reject_target, with
+      a connection_reject log_selector, under tls_on_connect.  Previously
+      with this combination, when the connect ACL rejected, a spurious
+      paniclog entry was made.
+
+JH/05 Fix TLS resumption for TLS-on-connect.  This was broken by the advent
+      of loadbalancer-detection for resumption, in 4.96 - which tries to
+      use the EHLO response. SMTPS does not have one at the time it is starting
+      TLS.  Change the default for the smtp transport host_name_extract option
+      to be a static string, for TLS-on-connect cases; meaning that resumption
+      will always be attempted (unless deliberately overriden).
+
+JH/06 Bug 3054: Fix dnsdb lookup for a TXT record with multiple chunks.  This
+      was broken by hardening introduced for Bug 3033.
+
+
+JH/04 Bug 2903: avoid exit on an attempt to rewrite a malformed address.
+      Make the rewrite never match and keep the logging.  Trust the
+      admin to be using verify=header-syntax (to actually reject the message).
+
+
+Exim version 4.next
+-------------------
+
+HS/01 Fix string_is_ip_address() CVE-2023-42117 (Bug 3031)
+
+
+Exim version 4.97
+-----------------
+
+JH/01 The hosts_connection_nolog main option now also controls "no MAIL in
+      SMTP connection" log lines.
+
+JH/02 Option default value updates:
+	- queue_fast_ramp (main)	true (was false)
+	- remote_max_parallel (main)	4 (was 2)
+
+JH/03 Cache static regex pattern compilations, for use by ACLs.
+
+JH/04 Bug 2903: avoid exit on an attempt to rewrite a malformed address.
+      Make the rewrite never match and keep the logging.  Trust the
+      admin to be using verify=header-syntax (to actually reject the message).
+
+JH/05 Follow symlinks for placing a watch on TLS creds files.  This means
+      (under Linux) we watch the dir containing the final file; previously
+      it would be the dir with the first symlink.  We still do not monitor
+      the entire path.
+
+JH/06 Check for bad chars in rDNS for sender_host_name.  The OpenBSD (at least)
+      dn_expand() is happy to pass them through.
+
+JH/07 OpenSSL Fix auto-reload of changed server OCSP proof.  Previously, if
+      the file with the proof had an unchanged name, the new proof(s) were
+      loaded on top of the old ones (and nover used; the old ones were stapled).
+
+JH/08 Bug 2915: Fix use-after-free for $regex<n> variables. Previously when
+      more than one message arrived in a single connection a reference from
+      the earlier message could be re-used.  Often a sigsegv resulted.
+      These variables were introduced in Exim 4.87.
+      Debug help from Graeme Fowler.
+
+JH/09 Fix ${filter } for conditions that modify $value.  Previously the
+      modified version would be used in construction the result, and a memory
+      error would occur.
+
+JH/10 GnuTLS: fix for (IOT?) clients offering no TLS extensions at all.
+      Find and fix by Jasen Betts.
+
+JH/11 OpenSSL: fix for ancient clients needing TLS support for versions earlier
+      than TLSv1,2,  Previously, more-recent versions of OpenSSL were permitting
+      the systemwide configuration to override the Exim config.
+
+HS/01 Bug 2728: Introduce EDITME option "DMARC_API" to work around incompatible
+      API changes in libopendmarc.
+
+JH/12 Bug 2930: Fix daemon startup.  When started from any process apart from
+      pid 1, in the normal "background daemon" mode, having to drop process-
+      group leadership also lost track of needing to create listener sockets.
+
+JH/13 Bug 2929: Fix using $recipients after ${run...}.  A change made for 4.96
+      resulted in the variable appearing empty.  Find and fix by Ruben Jenster.
+
+JH/14 Bug 2933: Fix regex substring match variables for null matches. Since 4.96
+      a capture group which obtained no text (eg. "(abc)*" matching zero
+      occurrences) could cause a segfault if the corresponding $<n> was
+      expanded.
+
+JH/15 Fix argument parsing for ${run } expansion. Previously, when an argument
+      included a close-brace character (eg. it itself used an expansion) an
+      error occurred.
+
+JH/16 Move running the smtp connect ACL to before, for TLS-on-connect ports,
+      starting TLS.  Previously it was after, meaning that attackers on such
+      ports had to be screened using the host_reject_connection main config
+      option. The new sequence aligns better with the STARTTLS behaviour, and
+      permits defences against crypto-processing load attacks, even though it
+      is strictly an incompatible change.
+      Also, avoid sending any SMTP fail response for either the connect ACL
+      or host_reject_connection, for TLS-on-connect ports.
+
+JH/17 Permit the ACL "encrypted" condition to be used in a HELO/EHLO ACL,
+      Previously this was not permitted, but it makes reasonable sense.
+      While there, restore a restriction on using it from a connect ACL; given
+      the change JH/16 it could only return false (and before 4.91 was not
+      permitted).
+
+JH/18 Fix a fencepost error in logging.  Previously (since 4.92) when a log line
+      was exactly sized compared to the log buffer, a crash occurred with the
+      misleading message "bad memory reference; pool not found".
+      Found and traced by Jasen Betts.
+
+JH/19 Bug 2911: Fix a recursion in DNS lookups.  Previously, if the main option
+      dns_again_means_nonexist included an element causing a DNS lookup which
+      iteslf returned DNS_AGAIN, unbounded recursion occurred.  Possible results
+      included (though probably not limited to) a process crash from stack
+      memory limit, or from excessive open files.  Replace this with a paniclog
+      whine (as this is likely a configuration error), and returning
+      DNS_NOMATCH.
+
+JH/20 Bug 2954: (OpenSSL) Fix setting of explicit EC curve/group.  Previously
+      this always failed, probably leading to the usual downgrade to in-clear
+      connections.
+
+JH/21 Fix TLSA lookups.  Previously dns_again_means_nonexist would affect
+      SERVFAIL results, which breaks the downgrade resistance of DANE.  Change
+      to not checking that list for these lookups.
+
+JH/22 Bug 2434: Add connection-elapsed "D=" element to more connection
+      closure log lines.
+
+JH/23 Fix crash in string expansions. Previously, if an empty variable was
+      immediately followed by an expansion operator, a null-indirection read
+      was done, killing the process.
+
+JH/24 Bug 2997: When built with EXPERIMENTAL_DSN_INFO, bounce messages can
+      include an SMTP response string which is longer than that supported
+      by the delivering transport.  Alleviate by wrapping such lines before
+      column 80.
+
+JH/25 Bug 2827: Restrict size of References: header in bounce messages to 998
+      chars (RFC limit).  Previously a limit of 12 items was made, which with
+      a not-impossible References: in the message being bounced could still
+      be over-large and get stopped in the transport.
+
+JH/26 For a ${readsocket } in TLS mode, send a TLS Close Alert before the TCP
+      close.  Previously a bare socket close was done.
+
+JH/27 Fix ${srs_encode ..}.  Previously it would give a bad result for one day
+      every 1024 days.
+
+JH/28 Bug 2996: Fix a crash in the smtp transport.  When finding that the
+      message being considered for delivery was already being handled by
+      another process, and having an SMTP connection already open, the function
+      to close it tried to use an uninitialized variable.  This would afftect
+      high-volume sites more, especially when running mailing-list-style loads.
+      Pollution of logs was the major effect, as the other process delivered
+      the message.  Found and partly investigated by Graeme Fowler.
+
+JH/29 Change format of the internal ID used for message identification. The old
+      version only supported 31 bits for a PID element; the new 64 (on systems
+      which can use Base-62 encoding, which is all currently supported ones
+      but not Darwin (MacOS) or Cygwin, which have case-insensitive filesystems
+      and must use Base-36).  The new ID is 23 characters rather than 16, and is
+      visible in various places - notably logs, message headers, and spool file
+      names.  Various of the ancillary utilities also have to know the format.
+	As well as the expanded PID portion, the sub-second part of the time
+      recorded in the ID is expanded to support finer precision.  Theoretically
+      this permits a receive rate from a single comms channel of better than the
+      previous 2000/sec.
+        The major timestamp part of the ID is not changed; at 6 characters it is
+      usable until about year 3700.
+        Updating from previously releases is fully supported: old-format spool
+      files are still usable, and the utilities support both formats.  New
+      message will use the new format.  The one hints-DB file type which uses
+      message-IDs (the transport wait- DB) will be discarded if an old-format ID
+      is seen; new ones will be built with only new-format IDs.
+      Optionally, a utility can be used to convert spool files from old to new,
+      but this is only an efficiency measure not a requirement for operation
+        Downgrading from new to old requires running a provided utility, having
+      first stopped all operations.  This will convert any spool files from new
+      back to old (losing time-precision and PID information) and remove any
+      wait- hints databases.
+
+JH/30 Bug 3006: Fix handling of JSON strings having embedded commas. Previously
+      we treated them as item separators when parsing for a list item, but they
+      need to be protected by the doublequotes.  While there, add handling for
+      backslashes.
+
+JH/31 Bug 2998: Fix ${utf8clean:...} to disallow UTF-16 surrogate codepoints.
+      Found and fixed by Jasen Betts. No testcase for this as my usual text
+      editor insists on emitting only valid UTF-8.
+
+JH/32 Fix "tls_dhparam = none" under GnuTLS.  At least with 3.7.9 this gave
+      a null-indirection SIGSEGV for the receive process.
+
+JH/33 Fix free for live variable $value created by a ${run ...} expansion during
+      -bh use.  Internal checking would spot this and take a panic.
+
+JH/34 Bug 3013: Fix use of $recipients within arguments for ${run...}.
+      In 4.96 this would expand to empty.
+
+JH/35 Bug 3014: GnuTLS: fix expiry date for an auto-generated server
+      certificate.  Find and fix by Andreas Metzler.
+
+JH/36 Add ARC info to DMARC hostory records.
+
+JH/37 Bug 3016: Avoid sending DSN when message was accepted under fakereject
+      or fakedefer.  Previously the sender could discover that the message
+      had in fact been accepted.
+
+JH/38 Taint-track intermediate values from the peer in multi-stage authentation
+      sequences.  Previously the input was not noted as being tainted; notably
+      this resulted in behaviour of LOGIN vs. PLAIN being inconsistent under
+      bad coding of authenticators.
+
+JH/39 Bug 3023: Fix crash induced by some combinations of zero-length strings
+      and ${tr...}.  Found and diagnosed by Heiko Schlichting.
+
+JH/40 Support list of dkim results in the dkim_status ACL condition, making
+      it more usable in the data ACL.
+
+JH/43 Bug 3033: Harden dnsdb lookups against crafted DNS responses.
+      CVE-2023-42219
+
+
+Exim version 4.96
+-----------------
+
+JH/01 Move the wait-for-next-tick (needed for unique messmage IDs) from
+      after reception to before a subsequent reception.  This should
+      mean slightly faster delivery, and also confirmation of reception
+      to senders.
+
+JH/02 Move from using the pcre library to pcre2.  The former is no longer
+      being developed or supported (by the original developer).
+
+JH/03 Constification work in the filters module required a major version
+      bump for the local-scan API.  Specifically, the "headers_charset"
+      global which is visible via the API is now const and may therefore
+      not be modified by local-scan code.
+
+JH/04 Fix ClamAV TCP use under FreeBSD. Previously the OS-specific shim for
+      sendfile() didi not account for the way the ClamAV driver code called it.
+
+JH/05 Bug 2819: speed up command-line messages being read in.  Previously a
+      time check was being done for every character; replace that with one
+      per buffer.
+
+JH/06 Bug 2815: Fix ALPN sent by server under OpenSSL.  Previously the string
+      sent was prefixed with a length byte.
+
+JH/07 Change the SMTP feature name for pipelining connect to be compliant with
+      RFC 5321.  Previously Dovecot (at least) would log errors during
+      submission.
+
+JH/08 Remove stripping of the binaries from the FreeBSD build.  This was added
+      in 4.61 without a reason logged. Binaries will be bigger, which might
+      matter on diskspace-constrained systems, but debug is easier.
+
+JH/09 Fix macro-definition during "-be" expansion testing.  The move to
+      write-protected store for macros had not accounted for these runtime
+      additions; fix by removing this protection for "-be" mode.
+
+JH/10 Convert all uses of select() to poll().  FreeBSD 12.2 was found to be
+      handing out large-numbered file descriptors, violating the usual Unix
+      assumption (and required by Posix) that the lowest possible number will be
+      allocated by the kernel when a new one is needed.  In the daemon, and any
+      child procesees, values higher than 1024 (being bigger than FD_SETSIZE)
+      are not useable for FD_SET() [and hence select()] and overwrite the stack.
+      Assorted crashes happen.
+
+JH/11 Fix use of $sender_host_name in daemon process.  When used in certain
+      main-section options or in a connect ACL, the value from the first ever
+      connection was never replaced for subsequent connections.  Found by
+      Wakko Warner.
+
+JH/12 Bug 2838: Fix for i32lp64 hard-align platforms. Found for SPARC Linux,
+      though only once PCRE2 was introduced: the memory accounting used under
+      debug offset allocations by an int, giving a hard trap in early startup.
+      Change to using a size_t.  Debug and fix by John Paul Adrian Glaubitz.
+
+JH/13 Bug 2845: Fix handling of tls_require_ciphers for OpenSSL when a value
+      with underbars is given.  The write-protection of configuration introduced
+      in 4.95 trapped when normalisation was applied to an option not needing
+      expansion action.
+
+JH/14 Bug 1895: TLS: Deprecate RFC 5114 Diffie-Hellman parameters.
+
+JH/15 Fix a resource leak in *BSD.  An off-by-one error resulted in the daemon
+      failing to close the certificates directory, every hour or any time it
+      was touched.
+
+JH/16 Debugging initiated by an ACL control now continues through into routing
+      and transport processes.  Previously debugging stopped any time Exim
+      re-execs, or for processing a queued message.
+
+JH/17 The "expand" debug selector now gives more detail, specifically on the
+      result of expansion operators and items.
+
+JH/18 Bug 2751: Fix include_directory in redirect routers.  Previously a
+      bad comparison between the option value and the name of the file to
+      be included was done, and a mismatch was wrongly identified.
+      4.88 to 4.95 are affected.
+
+JH/19 Support for Berkeley DB versions 1 and 2 is withdrawn.
+
+JH/20 When built with NDBM for hints DB's check for nonexistence of a name
+      supplied as the db file-pair basename.  Previously, if a directory
+      path was given, for example via the autoreply "once" option, the DB
+      file.pag and file.dir files would be created in that directory's
+      parent.
+
+JH/21 Remove the "allow_insecure_tainted_data" main config option and the
+      "taint" log_selector.  These were previously deprecated.
+
+JH/22 Fix static address-list lookups to properly return the matched item.
+      Previously only the domain part was returned.
+
+JH/23 Bug 2864: FreeBSD: fix transport hang after 4xx/5xx response. Previously
+      the call into OpenSSL to send a TLS Close was being repeated; this
+      resulted in the library waiting for the peer's Close.  If that was never
+      sent we waited forever.  Fix by tracking send calls.
+
+JH/24 The ${run} expansion item now expands its command string elements after
+      splitting.  Previously it was before; the new ordering makes handling
+      zero-length arguments simpler.  The old ordering can be obtained by
+      appending a new option "preexpand", after a comma, to the "run".
+
+JH/25 Taint-check exec arguments for transport-initiated external processes.
+      Previously, tainted values could be used.  This affects "pipe", "lmtp" and
+      "queryprogram" transport, transport-filter, and ETRN commands.
+      The ${run} expansion is also affected: in "preexpand" mode no part of
+      the command line may be tainted, in default mode the executable name
+      may not be tainted.
+
+JH/26 Fix CHUNKING on a continued-transport.  Previously the usabliility of
+      the the facility was not passed across execs, and only the first message
+      passed over a connection could use BDAT; any further ones using DATA.
+
+JH/27 Support the PIPECONNECT facility in the smtp transport when the helo_data
+      uses $sending_ip_address and an interface is specified.
+      Previously any use of the local address in the EHLO name disabled
+      PIPECONNECT, the common case being to use the rDNS of it.
+
+JH/28 OpenSSL: fix transport-required OCSP stapling verification under session
+      resumption. Previously verify failed because no certificate status is
+      passed on the wire for the restarted session. Fix by using the recorded
+      ocsp status of the stored session for the new connection.
+
+JH/29 TLS resumption: the key for session lookup in the client now includes
+      more info that a server could potentially use in configuring a TLS
+      session, avoiding oferring mismatching sessions to such a server.
+      Previously only the server IP was used.
+
+JH/30 Fix string_copyn() for limit greater than actual string length.
+      Previously the copied amount was the limit, which could result in a
+      overlapping memcpy for newly allocated destination soon after a
+      source string shorter than the limit.  Found/investigated  by KM.
+
+JH/31 Bug 2886: GnuTLS: Do not free the cached creds on transport connection
+      close; it may be needed for a subsequent connection.  This caused a
+      SEGV on primary-MX defer.  Found/investigated by Gedalya & Andreas.
+
+JH/32 Fix CHUNKING for a second message on a connection when the first was
+      rejected.  Previously we did not reset the chunking-offered state, and
+      erroneously rejected the BDAT command.  Investigation help from
+      Jesse Hathaway.
+
+JH/33 Fis ${srs_encode ...} to handle an empty sender address, now returning
+      an empty address.  Previously the expansion returned an error.
+
+HS/01 Bug 2855: Handle a v4mapped sender address given us by a frontending
+      proxy.  Previously these were misparsed, leading to paniclog entries.
+
+
+Exim version 4.95
+-----------------
+
+JH/01 Bug 1329: Fix format of Maildir-format filenames to match other mail-
+      related applications.  Previously an "H" was used where available info
+      says that "M" should be, so change to match.
 
 JH/02 Bug 2587: Fix pam expansion condition.  Tainted values are commonly used
       as arguments, so an implementation trying to copy these into a local

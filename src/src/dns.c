@@ -304,7 +304,7 @@ Return: TRUE for a bad result
 static BOOL
 dnss_inc_aptr(const dns_answer * dnsa, dns_scan * dnss, unsigned delta)
 {
-return (dnss->aptr += delta) >= dnsa->answer + dnsa->answerlen;
+return (dnss->aptr += delta) > dnsa->answer + dnsa->answerlen;
 }
 
 /*************************************************
@@ -389,7 +389,7 @@ if (reset != RESET_NEXT)
       TRACE trace = "A-hdr";
       if (dnss_inc_aptr(dnsa, dnss, namelen+8)) goto null_return;
       GETSHORT(dnss->srr.size, dnss->aptr); /* size of data portion */
-      /* skip over it */
+      /* skip over it, checking for a bogus size */
       TRACE trace = "A-skip";
       if (dnss_inc_aptr(dnsa, dnss, dnss->srr.size)) goto null_return;
       }
@@ -417,7 +417,9 @@ namelen = dn_expand(dnsa->answer, dnsa->answer + dnsa->answerlen, dnss->aptr,
 if (namelen < 0) goto null_return;
 
 /* Move the pointer past the name and fill in the rest of the data structure
-from the following bytes. */
+from the following bytes.  We seem to be assuming here that the RR blob passed
+to us by the resolver library is the same as that defined for an RR by RFC 1035
+section 3.2.1 */
 
 TRACE trace = "R-name";
 if (dnss_inc_aptr(dnsa, dnss, namelen)) goto null_return;
@@ -429,10 +431,9 @@ GETLONG(dnss->srr.ttl, dnss->aptr);		/* TTL */
 GETSHORT(dnss->srr.size, dnss->aptr);		/* Size of data portion */
 dnss->srr.data = dnss->aptr;			/* The record's data follows */
 
-/* Unchecked increment ok here since no further access on this iteration;
-will be checked on next at "R-name". */
-
-dnss->aptr += dnss->srr.size;			/* Advance to next RR */
+/* skip over it, checking for a bogus size */
+if (dnss_inc_aptr(dnsa, dnss, dnss->srr.size))
+  goto null_return;
 
 /* Return a pointer to the dns_record structure within the dns_answer. This is
 for convenience so that the scans can use nice-looking for loops. */
