@@ -302,6 +302,7 @@ for(;;)
     {
     proxy_local_address = string_copy(proxy.address);
     proxy_local_port = sob->port;
+    proxy_session = TRUE;
     break;
     }
 
