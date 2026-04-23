@@ -5438,22 +5438,35 @@ Returns:       nothing
 static void
 print_dsn_diagnostic_code(const address_item *addr, FILE *f)
 {
-uschar * s = testflag(addr, af_pass_message) ? addr->message : NULL;
+uschar * s;
 unsigned cnt;
+DEBUG(D_deliver)
+  debug_printf("DSN Diagnostic-Code: pass_message=%s, message=%s, user_message=%s\n", testflag(addr, af_pass_message), addr->message, addr->user_message);
 
 /* af_pass_message and addr->message set ? print remote host answer */
-if (!s)
-  return;
-
-DEBUG(D_deliver)
-  debug_printf("DSN Diagnostic-Code: addr->message = %s\n", addr->message);
-
 /* search first ": ". we assume to find the remote-MTA answer there */
-if (!(s = Ustrstr(addr->message, ": ")))
-  return;				/* not found, bail out */
-
-s += 2;  /* skip ": " */
-cnt = fprintf(f, "Diagnostic-Code: smtp; ");
+if (testflag(addr, af_pass_message) && addr->message && Ustrstr(addr->message, ": "))
+  {
+  s = addr->message;
+  s = Ustrstr(addr->message, ": ");
+  s += 2;
+  }
+else
+  {
+  s = addr->user_message;
+  }
+DEBUG(D_deliver)
+  debug_printf("DSN Diagnostic-Code: %s\n", s);
+  if (s)
+  {
+  /* search first ": ". we assume to find the remote-MTA answer there */
+  if (!(s = Ustrstr(addr->message, ": ")))
+    return;				/* not found, bail out */
+  s += 2;  /* skip ": " */
+  cnt = fprintf(f, "Diagnostic-Code: smtp; ");
+  }
+/* no message available. do nothing */
+else return;
 
 while (*s)
   {
@@ -5861,6 +5874,7 @@ wording. */
       addr->next = handled_addr;
       handled_addr = topaddr;
       }
+      print_dsn_diagnostic_code(addr, fp);
     fputc('\n', fp);
     }
 
