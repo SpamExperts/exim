@@ -896,7 +896,9 @@ extern struct timeval received_time;   /* Time the message started to be receive
 extern struct timeval received_time_complete; /* Time the message completed reception */
 extern uschar *recipient_data;         /* lookup data for recipients */
 extern uschar *recipient_unqualified_hosts; /* Permitted unqualified recipients */
+extern BOOL    recipient_verify_cache; /* If callout cache was found */
 extern uschar *recipient_verify_failure; /* What went wrong */
+extern uschar *recipient_verify_message; /* Remote message */
 extern int     recipients_list_max;    /* Maximum number fitting in list */
 extern uschar *recipients_max;         /* Max permitted */
 extern int     recipients_max_expanded;
@@ -968,7 +970,9 @@ extern uschar *sender_rate_limit;      /* Configured rate limit */
 extern uschar *sender_rate_period;     /* Configured smoothing period */
 extern uschar *sender_rcvhost;         /* Host data for Received: */
 extern uschar *sender_unqualified_hosts; /* Permitted unqualified senders */
+extern BOOL    sender_verify_cache;    /* If callout cache was found */
 extern uschar *sender_verify_failure;  /* What went wrong */
+extern uschar *sender_verify_message; /* Remote message */
 extern address_item *sender_verified_list; /* Saved chain of sender verifies */
 extern address_item *sender_verified_failed; /* The one that caused denial */
 extern uschar *sending_ip_address;     /* Address of outgoing (SMTP) interface */
