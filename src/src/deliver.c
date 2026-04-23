@@ -5839,7 +5839,7 @@ wording. */
 	"The following text was generated during the delivery "
 	"attempt%s:\n", (filecount > 1)? "s" : "");
 
-    for (addr = msgchain; addr; addr = nextaddr)
+    for (address_item * addr = msgchain; addr; addr = nextaddr)
       {
       FILE *fm;
       address_item *topaddr = addr;
@@ -5874,8 +5874,8 @@ wording. */
       nextaddr = addr->next;
       addr->next = handled_addr;
       handled_addr = topaddr;
-      }
       print_dsn_diagnostic_code(addr, fp);
+      }
     fputc('\n', fp);
     }
 
