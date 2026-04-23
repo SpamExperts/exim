@@ -889,7 +889,6 @@ tls_retry_connection:
 	    sx->send_rset = TRUE;
 	    sx->completed_addr = FALSE;
 	    goto tls_retry_connection;
-	  case DEFER:		/* 4xx response to random */
 	    break;		/* Just to be clear. ccache_unknown, !done. */
 	  }
 
