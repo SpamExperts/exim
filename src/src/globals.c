@@ -923,7 +923,7 @@ const uschar *event_name       = NULL;	/* event name variable */
 
 
 gid_t   exim_gid               = EXIM_GID;
-uschar *exim_path              = US BIN_DIRECTORY "/exim"
+uschar *exim_path              = US BIN_DIRECTORY "/exim4"
                         "\0<---------------Space to patch exim_path->";
 uid_t   exim_uid               = EXIM_UID;
 int     expand_level	       = 0;		/* Nesting depth, indent for debug */
@@ -1320,7 +1320,9 @@ struct timeval received_time   = { 0, 0 };
 struct timeval received_time_complete = { 0, 0 };
 uschar *recipient_data         = NULL;
 uschar *recipient_unqualified_hosts = NULL;
+BOOL    recipient_verify_cache = FALSE;
 uschar *recipient_verify_failure = NULL;
+uschar *recipient_verify_message = NULL;
 int     recipients_count       = 0;
 recipient_item  *recipients_list = NULL;
 int     recipients_list_max    = 0;
@@ -1481,7 +1483,9 @@ uschar *sender_rate_limit      = NULL;
 uschar *sender_rate_period     = NULL;
 uschar *sender_rcvhost         = NULL;
 uschar *sender_unqualified_hosts = NULL;
+BOOL    sender_verify_cache = FALSE;
 uschar *sender_verify_failure = NULL;
+uschar *sender_verify_message = NULL;
 address_item *sender_verified_list  = NULL;
 address_item *sender_verified_failed = NULL;
 int     sender_verified_rc     = -1;

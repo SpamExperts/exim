@@ -557,8 +557,18 @@ if (cached_callout_lookup(addr, address_key, from_address,
       &new_domain_record, &old_domain_cache_result))
   {
   cancel_cutthrough_connection(TRUE, US"cache-hit");
+  if (options & vopt_is_recipient)
+    recipient_verify_cache = TRUE;
+  else
+    sender_verify_cache = TRUE;
+
   goto END_CALLOUT;
   }
+
+if (options & vopt_is_recipient)
+  recipient_verify_cache = FALSE;
+else
+  sender_verify_cache = FALSE;
 
 if (!addr->transport)
   {
@@ -624,6 +634,15 @@ coding means skipping this whole loop and doing the append separately.  */
      && !pm_mailfrom
      )
     done = cutthrough_multi(addr, host_list, tf, &yield);
+
+    if (options & vopt_is_recipient)
+    {
+      recipient_verify_message = addr->user_message;
+    }
+    else
+    {
+      sender_verify_message = addr->user_message;
+    }
 
   /* If we did not use a cached connection, make connections to the hosts
   and do real callouts. The list of hosts is passed in as an argument. */
@@ -840,6 +859,7 @@ tls_retry_connection:
 	    goto no_conn;
 	  case FAIL:		/* rejected: the preferred result */
 	    new_domain_record.random_result = ccache_reject;
+    case DEFER:		/* 4xx response to random */
 	    sx->avoid_option = 0;
 
 	    /* Between each check, issue RSET, because some servers accept only
@@ -871,7 +891,6 @@ tls_retry_connection:
 	    sx->send_rset = TRUE;
 	    sx->completed_addr = FALSE;
 	    goto tls_retry_connection;
-	  case DEFER:		/* 4xx response to random */
 	    break;		/* Just to be clear. ccache_unknown, !done. */
 	  }
 
