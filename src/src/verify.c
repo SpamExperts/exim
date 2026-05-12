@@ -1073,8 +1073,8 @@ no_conn:
 	addr->user_message = options & vopt_is_recipient
 	  ? string_sprintf("Callout verification failed:\n%s", sx->buffer)
 	  : string_sprintf("Called:   %s\nSent:     %s\nResponse: %s",
-	    
-      
+	    host->address, big_buffer, sx->buffer);
+
   if (options & vopt_is_recipient)
   {
     recipient_verify_message = string_sprintf("%s", sx->buffer);
