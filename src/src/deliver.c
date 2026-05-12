@@ -1684,7 +1684,7 @@ else if (result == DEFER || result == PANIC)
     /* Skip this event for errors of the type "retry time not reached" */
     if (addr->basic_errno >= ERRNO_RETRY_BASE)
     {
-      if (deliver_freeze)
+      if (f.deliver_freeze)
         msg_event_raise(US"msg:defer:delivery:frozen", addr);
       else
         msg_event_raise(US"msg:defer:delivery", addr);
