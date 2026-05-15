@@ -184,6 +184,7 @@ if (  dmarc_policy == DMARC_POLICY_REJECT     && action == DMARC_RESULT_REJECT
    || dmarc_policy == DMARC_POLICY_QUARANTINE && action == DMARC_RESULT_QUARANTINE
    || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_REJECT
    || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_QUARANTINE
+   || dmarc_policy == DMARC_POLICY_NONE       && action == DMARC_RESULT_ACCEPT
    )
   if (ruf)
     {
@@ -517,14 +518,8 @@ The EDITME provides a DMARC_API variable */
 #endif
     }
 
-  /* Look up DMARC policy record in DNS.  We do this explicitly, rather than
-  letting the dmarc library do it with opendmarc_policy_query_dmarc(), so that
-  our dns access path is used for debug tracing and for the testsuite
-  diversion. */
+  libdm_status = opendmarc_policy_query_dmarc(dmarc_pctx, US"");
 
-  libdm_status = (rr = dmarc_dns_lookup(header_from_sender))
-    ? opendmarc_policy_store_dmarc(dmarc_pctx, rr, header_from_sender, NULL)
-    : DMARC_DNS_ERROR_NO_RECORD;
   switch (libdm_status)
     {
     case DMARC_DNS_ERROR_NXDOMAIN:
