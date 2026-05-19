@@ -641,7 +641,7 @@ LDFLAGS += -lopendmarc
 # EXPERIMENTAL_QUEUEFILE=yes
 #
 # Uncomment the following line to add XCLIENT support
-# EXPERIMENTAL_XCLIENT=yes
+EXPERIMENTAL_XCLIENT=yes
 
 ###############################################################################
 #                 THESE ARE THINGS YOU MIGHT WANT TO SPECIFY                  #
