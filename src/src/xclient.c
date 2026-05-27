@@ -109,7 +109,7 @@ if (  !flag
 Strictly we should avoid doing this for a Proxy-Protocol
 session to avoid mixups. */
 
-if(!proxy_session && verify_check_host(&hosts_xclient) == FAIL)
+if(!proxy_session && verify_check_host(&xclient_allow_hosts) == FAIL)
   {
   *resp = 550;
   *flag = TRUE;

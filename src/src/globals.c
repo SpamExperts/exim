@@ -1008,7 +1008,7 @@ uschar *hosts_proxy            = NULL;
 uschar *hosts_treat_as_local   = NULL;
 uschar *hosts_require_helo     = US"*";
 #ifdef EXPERIMENTAL_XCLIENT
-uschar *hosts_xclient	       = NULL;
+uschar *xclient_allow_hosts	       = NULL;
 #endif
 tree_node *hostlist_anchor     = NULL;
 int     hostlist_count         = 0;

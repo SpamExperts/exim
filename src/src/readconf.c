@@ -193,7 +193,7 @@ static optionlist optionlist_config[] = {
   { "hosts_require_helo",       opt_stringptr,   {&hosts_require_helo} },
   { "hosts_treat_as_local",     opt_stringptr,   {&hosts_treat_as_local} },
 #ifdef EXPERIMENTAL_XCLIENT
-  { "hosts_xclient",		opt_stringptr,	 {&hosts_xclient} },
+  { "xclient_allow_hosts",		opt_stringptr,	 {&xclient_allow_hosts} },
 #endif
 #ifdef LOOKUP_IBASE
   { "ibase_servers",            opt_stringptr,   {&ibase_servers} },

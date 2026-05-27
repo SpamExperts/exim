@@ -8,7 +8,7 @@
 .endif
 
 primary_hostname = myhost.test.ex
-hosts_xclient = HOSTIPV4
+xclient_allow_hosts = HOSTIPV4
 queue_only
 
 # ----- Main settings -----

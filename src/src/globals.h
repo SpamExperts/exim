@@ -673,7 +673,7 @@ extern uschar *hosts_connection_nolog; /* Limits the logging option */
 extern uschar *hosts_require_helo;     /* check for HELO/EHLO before MAIL */
 extern uschar *hosts_treat_as_local;   /* For routing */
 #ifdef EXPERIMENTAL_XCLIENT
-extern uschar *hosts_xclient;	       /* Allow XCLIENT command for specified hosts */
+extern uschar *xclient_allow_hosts;	       /* Allow XCLIENT command for specified hosts */
 #endif
 extern tree_node *hostlist_anchor;     /* Tree of defined host lists */
 extern int     hostlist_count;         /* Number defined */

@@ -4286,7 +4286,7 @@ while (done <= 0)
 	  }
 #endif
 #ifdef EXPERIMENTAL_XCLIENT
-	if (proxy_session || verify_check_host(&hosts_xclient) != FAIL)
+	if (proxy_session || verify_check_host(&xclient_allow_hosts) != FAIL)
 	  {
 	  g = string_catn(g, smtp_code, 3);
 	  g = xclient_smtp_advertise_str(g);
@@ -5533,7 +5533,7 @@ while (done <= 0)
 	smtp_printf(" WELLKNOWN", SP_MORE);
 #endif
 #ifdef EXPERIMENTAL_XCLIENT
-      if (proxy_session || verify_check_host(&hosts_xclient) != FAIL)
+      if (proxy_session || verify_check_host(&xclient_allow_hosts) != FAIL)
 	smtp_printf(" XCLIENT", SP_MORE);
 #endif
       smtp_printf("\r\n", SP_NO_MORE);

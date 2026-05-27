@@ -639,7 +639,7 @@ The only client immplementation known is in Nginx
 If compiled with EXPERIMENTAL_XCLIENT=yes :-
 
 As a server, Exim will advertise XCLIENT support (conditional on a new option
-"hosts_xclient") and service XCLIENT commands with parameters
+"xclient_allow_hosts") and service XCLIENT commands with parameters
   ADDR
   NAME
   PORT
