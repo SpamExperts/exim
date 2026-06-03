@@ -1507,7 +1507,7 @@ RESET_AFTER_EXTRA_LINE_READ:
     next if / in limits_advertise_hosts?\? no \(matched "!\*"\)/;
 
     # Experimental_XCLIENT
-    next if / in hosts_xclient\? no \(option unset\)/;
+    next if / in xclient_allow_hosts\? no \(option unset\)/;
 
     # Experimental_WELLKNOWN
     next if / in hosts_wellknown\? no \(option unset\)/;

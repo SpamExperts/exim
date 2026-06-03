@@ -192,9 +192,6 @@ static optionlist optionlist_config[] = {
 #endif
   { "hosts_require_helo",       opt_stringptr,   {&hosts_require_helo} },
   { "hosts_treat_as_local",     opt_stringptr,   {&hosts_treat_as_local} },
-#ifdef EXPERIMENTAL_XCLIENT
-  { "hosts_xclient",		opt_stringptr,	 {&hosts_xclient} },
-#endif
 #ifdef LOOKUP_IBASE
   { "ibase_servers",            opt_stringptr,   {&ibase_servers} },
 #endif
@@ -411,6 +408,9 @@ static optionlist optionlist_config[] = {
   { "wellknown_advertise_hosts",opt_stringptr,	 {&wellknown_advertise_hosts} },
 #endif
   { "write_rejectlog",          opt_bool,        {&write_rejectlog} },
+#ifdef EXPERIMENTAL_XCLIENT
+  { "xclient_allow_hosts",		opt_stringptr,	 {&xclient_allow_hosts} },
+#endif
 };
 
 #ifndef MACRO_PREDEF
