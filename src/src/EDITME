@@ -623,7 +623,7 @@ LDFLAGS += -lopendmarc
 
 # Uncomment the following line to add ARC (Authenticated Received Chain)
 # support.  You must have SPF and DKIM support enabled also.
-# EXPERIMENTAL_ARC=yes
+EXPERIMENTAL_ARC=yes
 
 # Uncomment the following lines to add Brightmail AntiSpam support. You need
 # to have the Brightmail client SDK installed. Please check the experimental
