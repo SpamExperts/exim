@@ -62,6 +62,7 @@ Do not put spaces between # and the 'define'.
 #define DISABLE_WELLKNOWN
 
 #define ENABLE_DISABLE_FSYNC
+#define ENABLE_ENCRYPTION
 
 #define EXIMDB_DIRECTORY_MODE      0750
 #define EXIMDB_LOCK_TIMEOUT          60
