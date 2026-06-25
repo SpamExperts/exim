@@ -1533,7 +1533,8 @@ MAX_NAMED_LIST=32
 # The feature involved is purely for debugging.
 
 # DISABLE_CLIENT_CMD_LOG=yes
-
+# Enable SpamExperts Domain Configuration Encryption support in readconf.c.
+# Requires OpenSSL/libcrypto (even if DISABLE_TLS=yes or USE_GNUTLS=yes).
 ENABLE_ENCRYPTION=yes
 
 # End of EDITME for Exim 4.
