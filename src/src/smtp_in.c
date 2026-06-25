@@ -3791,7 +3791,7 @@ while (done <= 0)
 	  {
 	  smtp_cmd_data = NULL;
 
-	  if (smtp_in_auth(au, &s, &ss, &user_msg, &log_msg) == OK)
+	  if (smtp_in_auth(au, &s, &ss, user_msg, log_msg) == OK)
 	    { DEBUG(D_auth) debug_printf("tls auth succeeded\n"); }
 	  else
 	    {
@@ -3892,7 +3892,7 @@ while (done <= 0)
 
 	if (au)
 	  {
-	  int rc = smtp_in_auth(au, &smtp_resp, &errmsg, &user_msg, &log_msg);
+	  int rc = smtp_in_auth(au, &smtp_resp, &errmsg, user_msg, log_msg);
 
 	  smtp_printf("%s\r\n", SP_NO_MORE, smtp_resp);
 	  if (rc != OK)
