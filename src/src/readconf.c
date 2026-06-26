@@ -850,11 +850,6 @@ return TRUE;
 
 
 
-/*****************************************************
-*    SpamExperts Domain Configuration Encryption     *
-*****************************************************/
-
-
 /* Process line for macros. The line is in big_buffer starting at offset len.
 Expand big_buffer if needed.  Handle definitions of new macros, and
 macro expansions, rewriting the line in the buffer.
@@ -955,21 +950,29 @@ Uskip_whitespace(&ss);
 return ss;
 }
 
+#ifdef ENABLE_ENCRYPTION
+/*****************************************************
+*    SpamExperts Domain Configuration Encryption     *
+*****************************************************/
+
 #include <string.h>
-#include <openssl/aes.h>
+#include <openssl/evp.h>
 
 const unsigned char KEY[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 void decrypt(uschar *s, const unsigned int length)
 {
-    unsigned int i;
-    uschar temp[length];
-    AES_KEY key;
-    AES_set_decrypt_key(KEY, 256, &key);
-    for (i=0; i < length; i += 16)
-    {
-        AES_decrypt(s+i, temp+i, &key);
-    }
+    EVP_CIPHER_CTX *ctx;
+    int outlen = 0;
+    unsigned int padded = (length + 15) & ~15u;
+    uschar temp[padded];
+
+    ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX_set_padding(ctx, 0);
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_ecb(), NULL, KEY, NULL);
+    EVP_DecryptUpdate(ctx, temp, &outlen, s, padded);
+    EVP_CIPHER_CTX_free(ctx);
+
     memcpy(s, temp, length);
     s[length] = '\0';
 }
@@ -1007,6 +1010,7 @@ int get_encrypted_s(int len)
     return 1;
   return 0;
 }
+#endif
 
 /*************************************************
 *            Read configuration line             *
@@ -1044,8 +1048,12 @@ BOOL macro_found;
 
 for (;;)
   {
+#ifdef ENABLE_ENCRYPTION
   /* We cannot use Ufgets because we need the length of the string read. */
   int read_c = get_encrypted_s(len);
+#else
+  int read_c = (Ufgets(big_buffer+len, big_buffer_size-len, config_file) == NULL) ? 1 : 0;
+#endif
   if (read_c)
     {
     if (config_file_stack != NULL)    /* EOF inside .include */
@@ -1096,7 +1104,11 @@ for (;;)
     big_buffer = newbuffer;
 
 
+#ifdef ENABLE_ENCRYPTION
     read_c = get_encrypted_s(newlen);
+#else
+    read_c = (Ufgets(big_buffer+newlen, big_buffer_size-newlen, config_file) == NULL) ? 1 : 0;
+#endif
     if (read_c)
       break;
 
