@@ -643,6 +643,10 @@ EXPERIMENTAL_ARC=yes
 # Uncomment the following line to add XCLIENT support
 EXPERIMENTAL_XCLIENT=yes
 
+# Uncomment the following like on exim >= 4.98 to enforce EHLO for XCLIENT
+# (keep it compatible with versions <= 4.94)
+XCLIENT_V1=yes
+
 ###############################################################################
 #                 THESE ARE THINGS YOU MIGHT WANT TO SPECIFY                  #
 ###############################################################################
