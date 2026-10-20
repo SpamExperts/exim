@@ -28,6 +28,7 @@ static int     data_fd = -1;
 static uschar *spool_name = US"";
 
 enum CH_STATE {LF_SEEN, MID_LINE, CR_SEEN};
+static BOOL first_line_ended_crlf;
 
 #ifdef HAVE_LOCAL_SCAN
 jmp_buf local_scan_env;		/* error-handling context for local_scan */
@@ -835,13 +836,12 @@ that for the body: convert bare LF to a space.
 
 Arguments:
   fout		a FILE to which to write the message; NULL if skipping
-  strict_crlf	require full CRLF sequence as a line ending
 
 Returns:    One of the END_xxx values indicating why it stopped reading
 */
 
 static int
-read_message_data_smtp(FILE * fout, BOOL strict_crlf)
+read_message_data_smtp(FILE * fout)
 {
 enum { s_linestart, s_normal, s_had_cr, s_had_nl_dot, s_had_dot_cr } ch_state =
 	      s_linestart;
@@ -869,7 +869,7 @@ while ((ch = (receive_getc)(GETC_BUFFER_UNLIMITED)) != EOF)
 	continue;			/* Don't write the CR */
 	}
       if (ch == '\n')			/* Bare LF at end of line */
-	if (strict_crlf)
+	if (first_line_ended_crlf)	/* strict CRLF mode (normal case) */
 	  ch = ' ';			/* replace LF with space */
 	else
 	  {				/* treat as line ending */
@@ -901,7 +901,7 @@ while ((ch = (receive_getc)(GETC_BUFFER_UNLIMITED)) != EOF)
 
     case s_had_nl_dot:			/* After [CR] LF . */
       if (ch == '\n')			/* [CR] LF . LF */
-	if (strict_crlf)
+	if (first_line_ended_crlf)	/* strict CRLF mode (normal case) */
 	  ch = ' ';			/* replace LF with space */
 	else
 	  return END_DOT;
@@ -1147,12 +1147,11 @@ Returns:     nothing
 */
 
 void
-receive_swallow_smtp(void)
+receive_swallow_smtp()
 {
 if (message_ended >= END_NOTENDED)
   message_ended = chunking_state <= CHUNKING_OFFERED
-     ? read_message_data_smtp(NULL, FALSE)
-     : read_message_bdat_smtp_wire(NULL);
+     ? read_message_data_smtp(NULL) : read_message_bdat_smtp_wire(NULL);
 }
 
 
@@ -1719,7 +1718,6 @@ int ptr = 0;
 
 BOOL contains_resent_headers = FALSE;
 BOOL extracted_ignored = FALSE;
-BOOL first_line_ended_crlf = TRUE_UNSET;
 BOOL smtp_yield = TRUE;
 BOOL yield = FALSE;
 
@@ -1911,7 +1909,7 @@ Loop for each character of each header; the next structure for chaining the
 header is set up already, with ptr the offset of the next character in
 next->text. */
 
-for (;;)
+for (first_line_ended_crlf = TRUE_UNSET; ;)
   {
   int ch = (receive_getc)(GETC_BUFFER_UNLIMITED);
 
@@ -3177,7 +3175,8 @@ if (cutthrough.cctx.sock >= 0 && cutthrough.delivery)
   if (received_count > received_headers_max)
     {
     cancel_cutthrough_connection(TRUE, US"too many headers");
-    if (smtp_input) receive_swallow_smtp();  /* Swallow incoming SMTP */
+    if (smtp_input)
+      receive_swallow_smtp();
     log_write(0, LOG_MAIN|LOG_REJECT, "rejected from <%s>%s%s%s%s: "
       "Too many \"Received\" headers",
       sender_address,
@@ -3262,7 +3261,7 @@ if (!ferror(spool_data_file) && !(receive_feof)() && message_ended != END_DOT)
   if (smtp_input)
     {
     message_ended = chunking_state <= CHUNKING_OFFERED
-      ? read_message_data_smtp(spool_data_file, first_line_ended_crlf)
+      ? read_message_data_smtp(spool_data_file)
       : spool_wireformat
       ? read_message_bdat_smtp_wire(spool_data_file)
       : read_message_bdat_smtp(spool_data_file);
@@ -3295,7 +3294,7 @@ if (!ferror(spool_data_file) && !(receive_feof)() && message_ended != END_DOT)
     case END_SIZE:
       Uunlink(spool_name);                /* Lose the data file when closed */
       cancel_cutthrough_connection(TRUE, US"mail too big");
-      if (smtp_input) receive_swallow_smtp();  /* Swallow incoming SMTP */
+      if (smtp_input) receive_swallow_smtp();
 
       log_write(L_size_reject, LOG_MAIN|LOG_REJECT, "rejected from <%s>%s%s%s%s: "
 	"message too big: read=%d max=%d",

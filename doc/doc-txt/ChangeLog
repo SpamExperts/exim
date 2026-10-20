@@ -7,6 +7,9 @@ Exim version 4.98.2
 
 This is a security release, addressing CVE-2025-30232
 
+JH/04 Avoid more "SMTP smuggling" attack types.  This extends the fixes for
+      CVE-2023-51766.  (GCVE-25-2026-09-56-1).
+
 JH/01 Fix use-after-free notified by Trend Micro (ref: ZDI-CAN-26250).
       Null out debug_pretrigger_buf pointer before freeing the buffer;
       the use of this buffer by the storage management checks the pointer
