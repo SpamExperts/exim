@@ -308,53 +308,53 @@ if (ret >= 16 && memcmp(&hdr.v2, v2sig, 12) == 0)
         {
         case 0x11:  /* TCPv4 address type */
           iptype = US"IPv4";
-          tmpaddr.sin_addr.s_addr = hdr.v2.addr.ip4.src_addr;
-          inet_ntop(AF_INET, &tmpaddr.sin_addr, CS &tmpip, sizeof(tmpip));
-          if (!string_is_ip_address(US tmpip, NULL))
+          tmpip.u4.sin.sin_addr.s_addr = hdr.v2.addr.ip4.src_addr;
+          inet_ntop(AF_INET, &tmpip.u4.sin.sin_addr, CS tmpip.u4.str, sizeof(tmpip.u4.str));
+          if (!string_is_ip_address(tmpip.u4.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s source IP\n", iptype);
             goto proxyfail;
             }
           proxy_local_address = sender_host_address;
-          sender_host_address = string_copy(US tmpip);
+          sender_host_address = string_copy(tmpip.u4.str);
           tmpport             = ntohs(hdr.v2.addr.ip4.src_port);
           proxy_local_port    = sender_host_port;
           sender_host_port    = tmpport;
           /* Save dest ip/port */
-          tmpaddr.sin_addr.s_addr = hdr.v2.addr.ip4.dst_addr;
-          inet_ntop(AF_INET, &tmpaddr.sin_addr, CS &tmpip, sizeof(tmpip));
-          if (!string_is_ip_address(US tmpip, NULL))
+          tmpip.u4.sin.sin_addr.s_addr = hdr.v2.addr.ip4.dst_addr;
+          inet_ntop(AF_INET, &tmpip.u4.sin.sin_addr, CS tmpip.u4.str, sizeof(tmpip.u4.str));
+          if (!string_is_ip_address(tmpip.u4.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s dest port\n", iptype);
             goto proxyfail;
             }
-          proxy_external_address = string_copy(US tmpip);
+          proxy_external_address = string_copy(tmpip.u4.str);
           tmpport              = ntohs(hdr.v2.addr.ip4.dst_port);
           proxy_external_port  = tmpport;
           goto done;
         case 0x21:  /* TCPv6 address type */
           iptype = US"IPv6";
-          memmove(tmpaddr6.sin6_addr.s6_addr, hdr.v2.addr.ip6.src_addr, 16);
-          inet_ntop(AF_INET6, &tmpaddr6.sin6_addr, CS &tmpip6, sizeof(tmpip6));
-          if (!string_is_ip_address(US tmpip6, NULL))
+          memmove(tmpip.u6.sin.sin6_addr.s6_addr, hdr.v2.addr.ip6.src_addr, 16);
+          inet_ntop(AF_INET6, &tmpip.u6.sin.sin6_addr, CS tmpip.u6.str, sizeof(tmpip.u6.str));
+          if (!string_is_ip_address(tmpip.u6.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s source IP\n", iptype);
             goto proxyfail;
             }
           proxy_local_address = sender_host_address;
-          sender_host_address = string_copy(US tmpip6);
+          sender_host_address = string_copy(tmpip.u6.str);
           tmpport             = ntohs(hdr.v2.addr.ip6.src_port);
           proxy_local_port    = sender_host_port;
           sender_host_port    = tmpport;
           /* Save dest ip/port */
-          memmove(tmpaddr6.sin6_addr.s6_addr, hdr.v2.addr.ip6.dst_addr, 16);
-          inet_ntop(AF_INET6, &tmpaddr6.sin6_addr, CS &tmpip6, sizeof(tmpip6));
-          if (!string_is_ip_address(US tmpip6, NULL))
+          memmove(tmpip.u6.sin.sin6_addr.s6_addr, hdr.v2.addr.ip6.dst_addr, 16);
+          inet_ntop(AF_INET6, &tmpip.u6.sin.sin6_addr, CS tmpip.u6.str, sizeof(tmpip.u6.str));
+          if (!string_is_ip_address(tmpip.u6.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s dest port\n", iptype);
             goto proxyfail;
             }
-          proxy_external_address = string_copy(US tmpip6);
+          proxy_external_address = string_copy(tmpip.u6.str);
           tmpport              = ntohs(hdr.v2.addr.ip6.dst_port);
           proxy_external_port  = tmpport;
           goto done;
