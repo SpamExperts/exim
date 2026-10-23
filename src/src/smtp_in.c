@@ -1210,7 +1210,10 @@ if required. */
 for (smtp_cmd_list * p = cmd_list; p < cmd_list + nelem(cmd_list); p++)
   {
 #ifdef SUPPORT_PROXY
-  /* Only allow QUIT command if Proxy Protocol parsing failed */
+  /* If P-Protocol parsing failed or hbeat; only allow HELO/EHLO/QUIT cmds */
+  if (  proxy_session && f.helo_quit_cmds_only
+     && p->cmd != HELO_CMD && p->cmd != EHLO_CMD && p->cmd != QUIT_CMD)
+    continue;
   if (proxy_session && f.proxy_session_failed && p->cmd != QUIT_CMD)
     continue;
 #endif
@@ -1265,8 +1268,8 @@ for (smtp_cmd_list * p = cmd_list; p < cmd_list + nelem(cmd_list); p++)
   }
 
 #ifdef SUPPORT_PROXY
-/* Only allow QUIT command if Proxy Protocol parsing failed */
-if (proxy_session && f.proxy_session_failed)
+/* If Proxy Protocol parsing failed or hbeat; only allow HELO/EHLO/QUIT cmds */
+if (proxy_session && (f.helo_quit_cmds_only || f.proxy_session_failed))
   return PROXY_FAIL_IGNORE_CMD;
 #endif
 
@@ -2573,13 +2576,17 @@ proxy_session = FALSE;
 
 #ifdef SUPPORT_PROXY
 /* If valid Proxy Protocol source is connecting, set up session.
-Failure will not allow any SMTP function other than QUIT. */
+Failure will not allow any SMTP function other than QUIT.  For heartbeat
+connections we only allow HELO/EHLO/QUIT */
 
+f.helo_quit_cmds_only = FALSE;
 f.proxy_session_failed = FALSE;
 if (proxy_protocol_host())
   {
   os_non_restarting_signal(SIGALRM, command_timeout_handler);
   proxy_protocol_setup();
+  if (!f.proxy_session_failed && sender_host_address == proxy_local_address)
+    f.helo_quit_cmds_only = TRUE;	/* No proxy-sourced SMTP accepted */
   }
 #endif
 
