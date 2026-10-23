@@ -70,6 +70,30 @@ QUIT
 ****
 #
 #
+### protocol v2 heartbeat
+client HOSTIPV4 PORT_D
+>>> \x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A\x20\x00\x00\x00
+??? 220
+HELO proxyname
+??? 250
+QUIT
+??? 221
+****
+#
+#
+### protocol v2 missing size field
+client HOSTIPV4 PORT_D
+>>> \x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A\x21\x21
+??? 220
+HELO clientname
+??? 503
+RSET
+??? 503
+QUIT
+??? 221
+****
+#
+#
 #
 killdaemon
 no_msglog_check

@@ -278,6 +278,7 @@ struct global_flags f =
 	.pipelining_enable      = TRUE,
 #if defined(SUPPORT_PROXY) || defined(SUPPORT_SOCKS)
 	.proxy_session_failed   = FALSE,
+	.helo_quit_cmds_only	= FALSE,
 #endif
 
 	.queue_2stage           = FALSE,

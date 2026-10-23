@@ -240,6 +240,7 @@ extern struct global_flags {
  BOOL   pipelining_enable		:1; /* As it says */
 #if defined(SUPPORT_PROXY) || defined(SUPPORT_SOCKS)
  BOOL   proxy_session_failed		:1; /* TRUE if required proxy negotiation failed */
+ BOOL   helo_quit_cmds_only		:1; /* TRUE if LOCAL connection */
 #endif
 
  BOOL   queue_2stage			:1; /* Run queue in 2-stage manner */
