@@ -33,6 +33,9 @@ JH/05 Fix TLS resumption for TLS-on-connect.  This was broken by the advent
 JH/06 Bug 3054: Fix dnsdb lookup for a TXT record with multiple chunks.  This
       was broken by hardening introduced for Bug 3033.
 
+JH/07 Avoid more "SMTP smuggling" attack types.  This extends the fixes for
+      CVE-2023-51766.  (GCVE-25-2026-09-56-1).
+
 
 JH/04 Bug 2903: avoid exit on an attempt to rewrite a malformed address.
       Make the rewrite never match and keep the logging.  Trust the
