@@ -2,6 +2,24 @@ This document describes *changes* to previous versions, that might
 affect Exim's operation, with an unchanged configuration file.  For new
 options, and new features, see the NewStuff file next to this ChangeLog.
 
+Exim version 4.100.1
+--------------------
+
+This is a security release.
+
+JH/01 Proxy Protocol: fix an OOB read in V1 protocol header parsing
+      (GCVE-25-2026-09-50-1).
+
+JH/02 Proxy-protocol: account for incomplete V2 protocol header reception.
+      Previously uninitialised data was then used for the length field of the
+      header, giving possible data leakage to an attacker.  This would require
+      a buggy or compromised proxy.  (GCVE-25-2026-09-55-1).
+
+JH/08 Bug 3252: fix Proxy-Protocol for LOCAL command heartbeat use. A security
+      update in 4.100.1 caused these to be rejected, requiring a
+      "pp2-never-send-local" configuration in HAProxy.
+
+
 
 Since Exim version 4.94
 -----------------------

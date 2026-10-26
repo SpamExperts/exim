@@ -11,14 +11,18 @@ queue_only
 
 log_selector = +proxy +incoming_port
 
+acl_smtp_helo = h_acl
 acl_smtp_rcpt = r_acl
 
 
 begin acl
 
-r_acl:
+h_acl:
   accept
 	logwrite = proxy session: $proxy_session
+	logwrite = helo:          $smtp_command
+r_acl:
+  accept
 	logwrite = local          [$received_ip_address]:$received_port
 	logwrite = proxy internal [$proxy_local_address]:$proxy_local_port
 	logwrite = proxy external [$proxy_external_address]:$proxy_external_port
