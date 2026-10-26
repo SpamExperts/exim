@@ -12,11 +12,18 @@
 >>>  list element: @
 >>>  list element: @[]
 >>> clientname in helo_lookup_domains? no (end of list)
->>> using ACL "r_acl"
->>> processing "accept" (TESTSUITE/test-config 22)
+>>> using ACL "h_acl"
+>>> processing "accept" (TESTSUITE/test-config 23)
 >>> check logwrite = proxy session: $proxy_session
 >>>                = proxy session: no
 LOG: proxy session: no
+>>> check logwrite = helo:          $smtp_command
+>>>                = helo:          HELO clientname
+LOG: helo:          HELO clientname
+>>> accept: condition test succeeded in ACL "h_acl"
+>>> end of ACL "h_acl": ACCEPT
+>>> using ACL "r_acl"
+>>> processing "accept" (TESTSUITE/test-config 27)
 >>> check logwrite = local          [$received_ip_address]:$received_port
 >>>                = local          []:-1
 LOG: local          []:-1
@@ -49,11 +56,18 @@ LOG: no host name found for IP address 127.0.0.2
 >>>  list element: @
 >>>  list element: @[]
 >>> clientname in helo_lookup_domains? no (end of list)
->>> using ACL "r_acl"
->>> processing "accept" (TESTSUITE/test-config 22)
+>>> using ACL "h_acl"
+>>> processing "accept" (TESTSUITE/test-config 23)
 >>> check logwrite = proxy session: $proxy_session
 >>>                = proxy session: yes
 LOG: proxy session: yes
+>>> check logwrite = helo:          $smtp_command
+>>>                = helo:          HELO clientname
+LOG: helo:          HELO clientname
+>>> accept: condition test succeeded in ACL "h_acl"
+>>> end of ACL "h_acl": ACCEPT
+>>> using ACL "r_acl"
+>>> processing "accept" (TESTSUITE/test-config 27)
 >>> check logwrite = local          [$received_ip_address]:$received_port
 >>>                = local          []:-1
 LOG: local          []:-1
@@ -86,11 +100,18 @@ LOG: no host name found for IP address 127.0.0.2
 >>>  list element: @
 >>>  list element: @[]
 >>> clientname in helo_lookup_domains? no (end of list)
->>> using ACL "r_acl"
->>> processing "accept" (TESTSUITE/test-config 22)
+>>> using ACL "h_acl"
+>>> processing "accept" (TESTSUITE/test-config 23)
 >>> check logwrite = proxy session: $proxy_session
 >>>                = proxy session: yes
 LOG: proxy session: yes
+>>> check logwrite = helo:          $smtp_command
+>>>                = helo:          HELO clientname
+LOG: helo:          HELO clientname
+>>> accept: condition test succeeded in ACL "h_acl"
+>>> end of ACL "h_acl": ACCEPT
+>>> using ACL "r_acl"
+>>> processing "accept" (TESTSUITE/test-config 27)
 >>> check logwrite = local          [$received_ip_address]:$received_port
 >>>                = local          []:-1
 LOG: local          []:-1

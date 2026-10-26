@@ -164,10 +164,16 @@ union {
 
 /* Temp variables used in PPv2 address:port parsing */
 uint16_t tmpport;
-char tmpip[INET_ADDRSTRLEN];
-struct sockaddr_in tmpaddr;
-char tmpip6[INET6_ADDRSTRLEN];
-struct sockaddr_in6 tmpaddr6;
+union {
+  struct {
+    uschar str[INET_ADDRSTRLEN];
+    struct sockaddr_in sin;
+  } u4;
+  struct {
+    uschar str[INET6_ADDRSTRLEN];
+    struct sockaddr_in6 sin;
+  } u6;
+} tmpip;
 
 /* We can't read "all data until end" because while SMTP is
 server-speaks-first, the TLS handshake is client-speaks-first, so for
@@ -223,7 +229,7 @@ if (ret == -1)
 DEBUG(D_receive) proxy_debug(US &hdr, 0, ret);
 
 /* For v2, handle reading the length, and then the rest. */
-if ((ret == PROXY_INITIAL_READ) && (memcmp(&hdr.v2, v2sig, sizeof(v2sig)) == 0))
+if (ret == PROXY_INITIAL_READ && memcmp(&hdr.v2, v2sig, sizeof(v2sig)) == 0)
   {
   int retmore;
   uint8_t ver;
@@ -233,13 +239,16 @@ if ((ret == PROXY_INITIAL_READ) && (memcmp(&hdr.v2, v2sig, sizeof(v2sig)) == 0))
   /* First get the length fields. */
   do
     {
-    retmore = read(fd, (uschar*)&hdr + ret, PROXY_V2_HEADER_SIZE - PROXY_INITIAL_READ);
-    } while (retmore == -1 && errno == EINTR && !had_command_timeout);
-  if (retmore == -1)
-    goto proxyfail;
-  DEBUG(D_receive) proxy_debug(US &hdr, ret, ret + retmore);
+    do
+      {
+      retmore = read(fd, US &hdr + ret, PROXY_V2_HEADER_SIZE - ret);
+      } while (retmore == -1 && errno == EINTR && !had_command_timeout);
+    if (retmore <= 0)
+      goto proxyfail;
+    DEBUG(D_receive) proxy_debug(US &hdr, ret, ret + retmore);
 
-  ret += retmore;
+    ret += retmore;
+    } while (ret < PROXY_V2_HEADER_SIZE);
 
   ver = (hdr.v2.ver_cmd & 0xf0) >> 4;
 
@@ -261,25 +270,26 @@ if ((ret == PROXY_INITIAL_READ) && (memcmp(&hdr.v2, v2sig, sizeof(v2sig)) == 0))
 
   /* We should now have 16 octets (PROXY_V2_HEADER_SIZE), and we know the total
   amount that we need.  Double-check that the size is not unreasonable, then
-  get the rest. */
+  get the rest, if any. */
+
   if (size > sizeof(hdr))
     {
     DEBUG(D_receive) debug_printf("PROXYv2 header size unreasonably large; security attack?\n");
     goto proxyfail;
     }
 
-  do
+  while (ret < size && !had_command_timeout)
     {
     do
       {
       retmore = read(fd, (uschar*)&hdr + ret, size-ret);
       } while (retmore == -1 && errno == EINTR && !had_command_timeout);
-    if (retmore == -1)
+    if (retmore <= 0)
       goto proxyfail;
     DEBUG(D_receive) proxy_debug(US &hdr, ret, ret + retmore);
     ret += retmore;
     DEBUG(D_receive) debug_printf("PROXYv2: have %d/%d required octets\n", ret, size);
-    } while (ret < size);
+    }
 
   } /* end scope for getting rest of data for v2 */
 
@@ -298,53 +308,53 @@ if (ret >= 16 && memcmp(&hdr.v2, v2sig, 12) == 0)
         {
         case 0x11:  /* TCPv4 address type */
           iptype = US"IPv4";
-          tmpaddr.sin_addr.s_addr = hdr.v2.addr.ip4.src_addr;
-          inet_ntop(AF_INET, &tmpaddr.sin_addr, CS &tmpip, sizeof(tmpip));
-          if (!string_is_ip_address(US tmpip, NULL))
+          tmpip.u4.sin.sin_addr.s_addr = hdr.v2.addr.ip4.src_addr;
+          inet_ntop(AF_INET, &tmpip.u4.sin.sin_addr, CS tmpip.u4.str, sizeof(tmpip.u4.str));
+          if (!string_is_ip_address(tmpip.u4.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s source IP\n", iptype);
             goto proxyfail;
             }
           proxy_local_address = sender_host_address;
-          sender_host_address = string_copy(US tmpip);
+          sender_host_address = string_copy(tmpip.u4.str);
           tmpport             = ntohs(hdr.v2.addr.ip4.src_port);
           proxy_local_port    = sender_host_port;
           sender_host_port    = tmpport;
           /* Save dest ip/port */
-          tmpaddr.sin_addr.s_addr = hdr.v2.addr.ip4.dst_addr;
-          inet_ntop(AF_INET, &tmpaddr.sin_addr, CS &tmpip, sizeof(tmpip));
-          if (!string_is_ip_address(US tmpip, NULL))
+          tmpip.u4.sin.sin_addr.s_addr = hdr.v2.addr.ip4.dst_addr;
+          inet_ntop(AF_INET, &tmpip.u4.sin.sin_addr, CS tmpip.u4.str, sizeof(tmpip.u4.str));
+          if (!string_is_ip_address(tmpip.u4.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s dest port\n", iptype);
             goto proxyfail;
             }
-          proxy_external_address = string_copy(US tmpip);
+          proxy_external_address = string_copy(tmpip.u4.str);
           tmpport              = ntohs(hdr.v2.addr.ip4.dst_port);
           proxy_external_port  = tmpport;
           goto done;
         case 0x21:  /* TCPv6 address type */
           iptype = US"IPv6";
-          memmove(tmpaddr6.sin6_addr.s6_addr, hdr.v2.addr.ip6.src_addr, 16);
-          inet_ntop(AF_INET6, &tmpaddr6.sin6_addr, CS &tmpip6, sizeof(tmpip6));
-          if (!string_is_ip_address(US tmpip6, NULL))
+          memmove(tmpip.u6.sin.sin6_addr.s6_addr, hdr.v2.addr.ip6.src_addr, 16);
+          inet_ntop(AF_INET6, &tmpip.u6.sin.sin6_addr, CS tmpip.u6.str, sizeof(tmpip.u6.str));
+          if (!string_is_ip_address(tmpip.u6.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s source IP\n", iptype);
             goto proxyfail;
             }
           proxy_local_address = sender_host_address;
-          sender_host_address = string_copy(US tmpip6);
+          sender_host_address = string_copy(tmpip.u6.str);
           tmpport             = ntohs(hdr.v2.addr.ip6.src_port);
           proxy_local_port    = sender_host_port;
           sender_host_port    = tmpport;
           /* Save dest ip/port */
-          memmove(tmpaddr6.sin6_addr.s6_addr, hdr.v2.addr.ip6.dst_addr, 16);
-          inet_ntop(AF_INET6, &tmpaddr6.sin6_addr, CS &tmpip6, sizeof(tmpip6));
-          if (!string_is_ip_address(US tmpip6, NULL))
+          memmove(tmpip.u6.sin.sin6_addr.s6_addr, hdr.v2.addr.ip6.dst_addr, 16);
+          inet_ntop(AF_INET6, &tmpip.u6.sin.sin6_addr, CS tmpip.u6.str, sizeof(tmpip.u6.str));
+          if (!string_is_ip_address(tmpip.u6.str, NULL))
             {
             DEBUG(D_receive) debug_printf("Invalid %s dest port\n", iptype);
             goto proxyfail;
             }
-          proxy_external_address = string_copy(US tmpip6);
+          proxy_external_address = string_copy(tmpip.u6.str);
           tmpport              = ntohs(hdr.v2.addr.ip6.dst_port);
           proxy_external_port  = tmpport;
           goto done;
@@ -357,8 +367,13 @@ if (ret >= 16 && memcmp(&hdr.v2, v2sig, 12) == 0)
       /* Unsupported protocol, keep local connection address */
       break;
     case 0x00: /* LOCAL command */
-      /* Keep local connection address for LOCAL */
+      /* We only support LOCAL for heartbeat use and possible proxy-sourced
+      SMTP.  However, our caller rejects the latter at present. */
+
+      DEBUG(D_receive) debug_printf("PROXYv2 LOCAL command\n");
       iptype = US"local";
+      proxy_external_address = proxy_local_address = sender_host_address;
+      proxy_external_port = proxy_local_port = sender_host_port;
       break;
     default:
       DEBUG(D_receive)
@@ -368,20 +383,14 @@ if (ret >= 16 && memcmp(&hdr.v2, v2sig, 12) == 0)
   }
 else if (ret >= 8 && memcmp(hdr.v1.line, "PROXY", 5) == 0)
   {
-  uschar *p;
-  uschar *end;
-  uschar *sp;     /* Utility variables follow */
-  int     tmp_port;
-  int     r2;
-  char   *endc;
+  uschar * p, * end, * sp, * endc;     /* Utility variables follow sp */
+  int tmp_port, r2;
 
   /* get the rest of the line */
   r2 = swallow_until_crlf(fd, (uschar*)&hdr, ret, sizeof(hdr)-ret);
   if (r2 == -1)
     goto proxyfail;
-  ret += r2;
-
-  p = string_copy(hdr.v1.line);
+  p = string_copyn(hdr.v1.line, ret = Ustrlen(hdr.v1.line));
   end = memchr(p, '\r', ret - 1);
 
   if (!end || (end == (uschar*)&hdr + ret) || end[1] != '\n')
@@ -415,8 +424,7 @@ else if (ret >= 8 && memcmp(hdr.v1.line, "PROXY", 5) == 0)
     DEBUG(D_receive) debug_printf("Invalid TCP type\n");
     goto proxyfail;
     }
-
-  p += Ustrlen(iptype);
+  p += Ustrlen(iptype);	/* the field sizes happen to match our iptype strings */
   if (!isspace(*p++))
     {
     DEBUG(D_receive) debug_printf("Missing space after TCP4/6 command\n");
@@ -460,7 +468,7 @@ else if (ret >= 8 && memcmp(hdr.v1.line, "PROXY", 5) == 0)
     goto proxyfail;
     }
   *sp = '\0';
-  tmp_port = strtol(CCS p, &endc, 10);
+  tmp_port = strtol(CCS p, CSS &endc, 10);
   if (*endc || tmp_port == 0)
     {
     DEBUG(D_receive)
@@ -475,7 +483,7 @@ else if (ret >= 8 && memcmp(hdr.v1.line, "PROXY", 5) == 0)
     DEBUG(D_receive) debug_printf("Did not find proxy dest port\n");
     goto proxyfail;
     }
-  tmp_port = strtol(CCS p, &endc, 10);
+  tmp_port = strtol(CCS p, CSS &endc, 10);
   if (*endc || tmp_port == 0)
     {
     DEBUG(D_receive)
@@ -515,8 +523,8 @@ bad:
   else
     {
     f.proxy_session_failed = TRUE;
-    DEBUG(D_receive)
-      debug_printf("Failure to extract proxied host, only QUIT allowed\n");
+    DEBUG(D_receive) debug_printf(
+      "Failure to extract proxied host, only HELO/EHLO/QUIT allowed\n");
     }
 
 ALARM(0);
